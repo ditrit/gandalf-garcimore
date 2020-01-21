@@ -1,9 +1,9 @@
 package main
 
-import "../chaussette/net"
+import "../shoset/net"
 
 func aggregator(logicalName string, clusterAddress string) {
-	chaussette := net.NewChaussette(logicalName)
+	chaussette := net.NewShoset(logicalName)
 	if clusterAddress != "" {
 		chaussette.Connect(clusterAddress)
 	}

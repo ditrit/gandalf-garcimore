@@ -1,11 +1,11 @@
 package main
 
 import (
-	"../chaussette/net"
+	"../shoset/net"
 )
 
 func connector(logicalName string, aggregatorAddress string) {
-	chaussette := net.NewChaussette(logicalName)
+	chaussette := net.NewShoset(logicalName)
 	if aggregatorAddress != "" {
 		chaussette.Connect(aggregatorAddress)
 	}

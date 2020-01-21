@@ -1,11 +1,11 @@
 package main
 
 import (
-	"../chaussette/net"
+	"../shoset/net"
 )
 
 func cluster(bindAddress string, joinAddress string) {
-	chaussette := net.NewChaussette("cluster")
+	chaussette := net.NewShoset("cluster")
 	chaussette.Bind(bindAddress)
 	if joinAddress != "" {
 		chaussette.Join(joinAddress)
