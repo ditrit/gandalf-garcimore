@@ -1,6 +1,6 @@
 package main
 
-import "../shoset/net"
+import "shoset/net"
 
 func aggregator(logicalName string, clusterAddress string) {
 	chaussette := net.NewShoset(logicalName)

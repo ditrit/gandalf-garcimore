@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../shoset/net"
+	"shoset/net"
 )
 
 func connector(logicalName string, aggregatorAddress string) {

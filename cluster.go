@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../shoset/net"
+	"shoset/net"
 )
 
 func cluster(bindAddress string, joinAddress string) {
