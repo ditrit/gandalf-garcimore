@@ -5,7 +5,7 @@ import (
 )
 
 func cluster(bindAddress string, joinAddress string) {
-	chaussette := net.NewShoset("cluster")
+	chaussette := net.NewShoset("cluster", "cl")
 	chaussette.Bind(bindAddress)
 	if joinAddress != "" {
 		chaussette.Join(joinAddress)
