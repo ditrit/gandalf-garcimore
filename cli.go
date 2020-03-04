@@ -1,89 +1,117 @@
 package main
 
 import (
+	"crypto/rand"
+	b64 "encoding/base64"
 	"flag"
 	"fmt"
 	"os"
 )
 
+const path = "/etc/gandalf/"
+
 func main() {
 
+	var (
+		config string
+	)
 	flag.Usage = func() {
 		fmt.Printf("Usage of %s:\n", os.Args[0])
-		fmt.Printf("	[options]\n options:\n")
-		flag.PrintDefaults()
-		fmt.Printf("  modes are exclusive\n")
+		fmt.Printf("  	gandalf mode command [options]")
+		fmt.Printf("  	mode : cluster, aggragor, connector, agent\n")
+		fmt.Printf("		cluster command : init, join\n")
+		fmt.Printf("  			arguments:\n")
+		fmt.Printf("  				logical name	  \n")
+		fmt.Printf("  				bind address    \n")
+		fmt.Printf("  				join address     \n")
 	}
 
-	var isConnector bool
-	var isAggregator bool
-	var isCluster bool
-	var isTest bool
-
-	flag.BoolVar(&isConnector, "c", false, "Connector mode (shorthand)")
-	flag.BoolVar(&isConnector, "connector", false, "Connector mode")
-	flag.BoolVar(&isAggregator, "a", false, "Aggregator mode (shorthand)")
-	flag.BoolVar(&isAggregator, "aggregator", false, "Aggregator mode")
-	flag.BoolVar(&isCluster, "cl", false, "Cluster mode (shorthand)")
-	flag.BoolVar(&isCluster, "s", false, "Cluster mode (shorthand)")
-	flag.BoolVar(&isCluster, "cluster", false, "Cluster mode")
-	flag.BoolVar(&isTest, "t", false, "Test mode (shorthand)")
-	flag.BoolVar(&isTest, "test", false, "Test mode")
+	flag.StringVar(&config, "c", "", "")
+	flag.StringVar(&config, "config", "", "")
 	flag.Parse()
-
 	args := flag.Args()
 
-	if isTest == true {
-		test()
-		return
-	}
+	if len(args) >= 1 {
+		mode := args[0]
+		switch mode {
+		case "cluster":
+			if len(args) >= 2 {
+				command := args[1]
 
-	nbArgs := len(args)
-	nbModes := 0
+				switch command {
+				case "init":
+					if len(args) >= 4 {
+						LogicalName := args[2]
+						BindAdd := args[3]
+						//CREATE CLUSTER
 
-	// 1 unique argument pour les connecteurs : leur nom logique
-	if isConnector == true {
-		nbModes++
-		if nbArgs == 2 {
-			logicalName := args[0]
-			aggregatorAddress := args[1]
-			connector(logicalName, aggregatorAddress)
-		} else {
-			flag.Usage()
-			os.Exit(1)
-		}
-	}
-
-	// 1 arguments pour un aggrégateur : le tenant et l'adresse d'un nombre
-	if isAggregator == true {
-		nbModes++
-		if nbArgs == 2 {
-			tenantName := args[0]
-			clusterAddress := args[1]
-			aggregator(tenantName, clusterAddress)
-		} else {
-			flag.Usage()
-			os.Exit(1)
-		}
-	}
-
-	if isCluster == true {
-		nbModes++
-		if nbArgs == 1 || nbArgs == 2 {
-			bindAddress := args[0]
-			joinAddress := ""
-			if nbArgs == 2 {
-				joinAddress = args[1]
+						clusterInit(LogicalName, BindAdd)
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Mode : " + mode)
+						fmt.Println("  Logical Name : " + LogicalName)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Config : " + config)
+					} else {
+						flag.Usage()
+					}
+					break
+				case "join": //join
+					if len(args) >= 5 {
+						LogicalName := args[2]
+						BindAdd := args[3]
+						JoinAdd := args[4]
+						//CREATE CLUSTER
+						clusterJoin(LogicalName, BindAdd, JoinAdd)
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Mode : " + mode)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Join Address : " + JoinAdd)
+						fmt.Println("  Config : " + config)
+					} else {
+						flag.Usage()
+					}
+					break
+				case "genkey":
+					key := make([]byte, 32)
+					_, err := rand.Read(key)
+					if err != nil {
+						fmt.Println("ERROR")
+					}
+					fmt.Println("Key : " + string(b64.URLEncoding.EncodeToString(key)))
+					break
+				default:
+					break
+				}
+			} else {
+				flag.Usage()
 			}
-			cluster(bindAddress, joinAddress)
-		} else {
-			flag.Usage()
-			os.Exit(1)
+		default:
+			break
+		case "agent":
+			if len(args) >= 1 {
+				command := args[1] //CREATE TENANT //CREATE USER //LIST USER //LIST TENANT
+				switch command {
+				case "CREATE_TENANT":
+					if len(args) >= 2 {
+						tenant := args[2] //TENANT
+						secret := args[3] //SECRET
+						fmt.Println(tenant)
+						fmt.Println(secret)
+					}
+					break
+				default:
+					break
+				}
+				server := args[2]
+				key := args[3]
+				fmt.Println(server)
+				fmt.Println(key)
+			} else {
+				flag.Usage()
+			}
 		}
-	}
 
-	if nbModes != 1 {
+	} else {
 		flag.Usage()
-		os.Exit(1)
 	}
 }
