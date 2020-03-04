@@ -46,7 +46,7 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 
 // HandleConfigJoin :
 func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
-	fmt.Println("OLD HANDLE")
+	fmt.Println("NEW HANDLE")
 
 	cfg := message.(msg.ConfigJoin)
 	ch := c.GetCh()

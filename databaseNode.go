@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"core/database"
 	"fmt"
 	"os"
 	"path/filepath"
+	"shoset/net"
 	"strconv"
 	"strings"
 	"time"
@@ -21,14 +21,14 @@ type DatabaseNode struct {
 	clusterDatabaseDirectory  string
 	clusterDatabaseConnection string
 	node                      *dqlite.Node
-	clusterDatabaseClient     *database.DatabaseClient
+	clusterDatabaseClient     *DatabaseClient
 }
 
 //NewDatabaseNode :
 func NewDatabaseNode(clusterID int, clusterDatabaseConnection string) *DatabaseNode {
 	databaseNode := new(DatabaseNode)
 	databaseNode.clusterID = clusterID
-	databaseNode.clusterDatabaseDirectory = "/home/orness/db/"
+	databaseNode.clusterDatabaseDirectory = "/tmp/"
 	databaseNode.clusterDatabaseConnection = getNodeConnection(clusterDatabaseConnection)
 
 	return databaseNode
@@ -39,7 +39,7 @@ func (dn DatabaseNode) run() {
 	err := dn.startNode(dn.clusterID, dn.clusterDatabaseDirectory, dn.clusterDatabaseConnection)
 	fmt.Println(err)
 	for {
-
+		time.Sleep(time.Millisecond * time.Duration(100))
 	}
 }
 
@@ -93,7 +93,9 @@ func (dn DatabaseNode) addNodesToLeader(databaseClient DatabaseClient) (err erro
 }
 
 func getNodeConnection(clusterConnection string) (clusterDatabaseConnection string) {
-	clusterConnectionSplit := strings.Split(clusterConnection, ":")
+	fmt.Printf("clusterconn: %s\n", clusterConnection)
+	addr, _ := net.GetIP(clusterConnection)
+	clusterConnectionSplit := strings.Split(addr, ":")
 	port, _ := strconv.Atoi(clusterConnectionSplit[1])
 	clusterDatabaseConnection = clusterConnectionSplit[0] + ":" + strconv.Itoa(port+1000)
 	fmt.Println(clusterDatabaseConnection)
