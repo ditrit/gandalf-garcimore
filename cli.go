@@ -17,13 +17,13 @@ func main() {
 	)
 	flag.Usage = func() {
 		fmt.Printf("Usage of %s:\n", os.Args[0])
-		fmt.Printf("  	gandalf mode command [options]")
-		fmt.Printf("  	mode : cluster, aggragor, connector, agent\n")
-		fmt.Printf("		cluster command : init, join\n")
-		fmt.Printf("  			arguments:\n")
-		fmt.Printf("  				logical name	  \n")
-		fmt.Printf("  				bind address    \n")
-		fmt.Printf("  				join address     \n")
+		fmt.Printf("  gandalf mode command [options]")
+		fmt.Printf("  mode : cluster, aggragor, connector, agent\n")
+		fmt.Printf("	cluster command : init, join\n")
+		fmt.Printf("      arguments:\n")
+		fmt.Printf("  	    logical name	  \n")
+		fmt.Printf("  		bind address    \n")
+		fmt.Printf("  		join address     \n")
 	}
 
 	flag.StringVar(&config, "c", "", "")
@@ -44,13 +44,15 @@ func main() {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						//CREATE CLUSTER
+						fmt.Println("INTI")
 
-						clusterInit(LogicalName, BindAdd)
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Config : " + config)
+						clusterInit(LogicalName, BindAdd)
+
 					} else {
 						flag.Usage()
 					}
@@ -61,12 +63,15 @@ func main() {
 						BindAdd := args[3]
 						JoinAdd := args[4]
 						//CREATE CLUSTER
-						clusterJoin(LogicalName, BindAdd, JoinAdd)
+						fmt.Println("JOIN")
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
+						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
+						clusterJoin(LogicalName, BindAdd, JoinAdd)
+
 					} else {
 						flag.Usage()
 					}

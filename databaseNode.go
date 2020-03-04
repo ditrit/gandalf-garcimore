@@ -38,6 +38,9 @@ func NewDatabaseNode(clusterID int, clusterDatabaseConnection string) *DatabaseN
 func (dn DatabaseNode) run() {
 	err := dn.startNode(dn.clusterID, dn.clusterDatabaseDirectory, dn.clusterDatabaseConnection)
 	fmt.Println(err)
+	for {
+
+	}
 }
 
 //startNode :
