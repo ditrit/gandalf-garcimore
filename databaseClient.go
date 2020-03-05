@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"time"
-
+	"fmt"
 	"github.com/canonical/go-dqlite/client"
 	"github.com/canonical/go-dqlite/driver"
 	"github.com/pkg/errors"
@@ -14,14 +14,13 @@ import (
 
 //DatabaseClient :
 type DatabaseClient struct {
-	cluster    []string
+	Cluster    []string
 	databaseDB map[string]*sql.DB
 }
 
 //NewDatabaseClient :
-func NewDatabaseClient(cluster []string) (databaseClient *DatabaseClient) {
+func NewDatabaseClient() (databaseClient *DatabaseClient) {
 	databaseClient = new(DatabaseClient)
-	databaseClient.cluster = cluster
 	databaseClient.databaseDB = make(map[string]*sql.DB)
 	return
 }
@@ -39,11 +38,13 @@ func (dc DatabaseClient) GetLeader() (*client.Client, error) {
 //getStore :
 func (dc DatabaseClient) getStore() client.NodeStore {
 	store := client.NewInmemNodeStore()
-	if len(dc.cluster) == 0 {
+	fmt.Println("STORE CLIENT " )
+	fmt.Println(dc.Cluster)
+	if len(dc.Cluster) == 0 {
 		// TODO handle this case
 	}
-	infos := make([]client.NodeInfo, len(dc.cluster))
-	for i, address := range dc.cluster {
+	infos := make([]client.NodeInfo, len(dc.Cluster))
+	for i, address := range dc.Cluster {
 		infos[i].ID = uint64(i + 1)
 		infos[i].Address = address
 	}

@@ -26,8 +26,16 @@ func (m ClusterMember) Bind(addr string) error {
 	ipAddr, err := net.GetIP(addr)
 	if err == nil {
 		err = m.chaussette.Bind(ipAddr)
-		//	m.databaseNode = NewDatabaseNode(0, addr) //ID
-		//	m.databaseNode.run()
+		thisDBAddr, ok := net.DeltaAddress(ipAddr, 1000)
+		if ok {
+			m.databaseClient = NewDatabaseClient()
+			m.chaussette.Context["cluster"] = m.databaseClient.Cluster
+			id, ok := net.IP2ID(thisDBAddr)
+			if ok {
+				m.databaseNode = NewDatabaseNode(id, thisDBAddr) //ID
+				m.databaseNode.run()
+			}
+		}
 	}
 	return err
 }
@@ -92,6 +100,7 @@ func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
 				},
 			)
 			fmt.Printf("store : %#v\n", store)
+			ch.Context["cluster"] = store
 		}
 
 		if dir == "out" {

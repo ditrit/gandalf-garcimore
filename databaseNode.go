@@ -15,7 +15,7 @@ import (
 
 //DatabaseNode :
 type DatabaseNode struct {
-	clusterID                 int
+	clusterID                 uint64
 	clusterDatabaseDirectory  string
 	clusterDatabaseConnection string
 	node                      *dqlite.Node
@@ -23,7 +23,7 @@ type DatabaseNode struct {
 }
 
 //NewDatabaseNode :
-func NewDatabaseNode(clusterID int, clusterDatabaseConnection string) *DatabaseNode {
+func NewDatabaseNode(clusterID uint64, clusterDatabaseConnection string) *DatabaseNode {
 	databaseNode := new(DatabaseNode)
 	databaseNode.clusterID = clusterID
 	databaseNode.clusterDatabaseDirectory = "/tmp/"
@@ -41,8 +41,8 @@ func (dn DatabaseNode) run() {
 }
 
 //startNode :
-func (dn DatabaseNode) startNode(id int, dir, address string) (err error) {
-	nodeID := strconv.Itoa(id)
+func (dn DatabaseNode) startNode(id uint64, dir, address string) (err error) {
+	nodeID := strconv.FormatUint(id, 10)
 	nodeDir := filepath.Join(dir, nodeID)
 
 	if errOs := os.MkdirAll(nodeDir, 0750); errOs != nil {
@@ -50,7 +50,7 @@ func (dn DatabaseNode) startNode(id int, dir, address string) (err error) {
 	}
 
 	node, err := dqlite.New(
-		uint64(id), address, nodeDir,
+		id, address, nodeDir,
 		dqlite.WithBindAddress(address),
 		dqlite.WithNetworkLatency(20*time.Millisecond),
 	)
