@@ -4,25 +4,48 @@ import (
 	"fmt"
 	"shoset/msg"
 	"shoset/net"
-	"time"
 )
 
-type clusterMember struct {
+// ClusterMember :
+type ClusterMember struct {
 	chaussette     *net.Shoset
 	databaseNode   *DatabaseNode
 	databaseClient *DatabaseClient
 }
 
+// NewClusterMember :
+func NewClusterMember(logicalName string) *ClusterMember {
+	member := new(ClusterMember)
+	member.chaussette = net.NewShoset(logicalName, "cl")
+	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
+	return member
+}
+
+// Bind :
+func (m ClusterMember) Bind(addr string) error {
+	ipAddr, err := net.GetIP(addr)
+	if err == nil {
+		err = m.chaussette.Bind(ipAddr)
+		//	m.databaseNode = NewDatabaseNode(0, addr) //ID
+		//	m.databaseNode.run()
+	}
+	return err
+}
+
+// Join :
+func (m ClusterMember) Join(addr string) (*net.ShosetConn, error) {
+	return m.chaussette.Join(addr)
+}
+
+// Link :
+func (m ClusterMember) Link(addr string) (*net.ShosetConn, error) {
+	return m.chaussette.Link(addr)
+}
+
 func clusterInit(logicalName, bindAddress string) {
 	done := make(chan bool)
-
-	clusterMember := new(clusterMember)
-	clusterMember.chaussette = net.NewShoset(logicalName, "cl")
-	clusterMember.chaussette.Handle["cfgjoin"] = HandleConfigJoin
-	clusterMember.chaussette.Bind(bindAddress)
-	//TODO VOIR POUR ID
-	clusterMember.databaseNode = NewDatabaseNode(0, bindAddress) //ID
-	clusterMember.databaseNode.run()
+	member := NewClusterMember(logicalName)
+	member.Bind(bindAddress)
 
 	<-done
 
@@ -30,16 +53,9 @@ func clusterInit(logicalName, bindAddress string) {
 
 func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	done := make(chan bool)
-
-	clusterMember := new(clusterMember)
-	clusterMember.chaussette = net.NewShoset(logicalName, "cl")
-	clusterMember.chaussette.Handle["cfgjoin"] = HandleConfigJoin
-	clusterMember.chaussette.Bind(bindAddress)
-	time.Sleep(time.Millisecond * time.Duration(50))
-	clusterMember.chaussette.Join(joinAddress)
-	//TODO VOIR POUR ID
-	clusterMember.databaseNode = NewDatabaseNode(0, bindAddress) //ID
-	clusterMember.databaseNode.run()
+	member := NewClusterMember(logicalName)
+	member.Bind(bindAddress)
+	member.Join(joinAddress)
 
 	<-done
 }
@@ -58,18 +74,25 @@ func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
 		if dir == "in" {
 			ch.Join(newMember)
 		}
-		thisOne := c.GetBindAddr()
+		thisOne := ch.GetBindAddr()
 		cfgNewMember := msg.NewCfgMember(newMember)
-		ch.ConnsJoin.Iterate(
-			func(key string, val *net.ShosetConn) {
-				if key != newMember && key != thisOne {
-					//
-					fmt.Printf("- %s : %s \n", thisOne, key)
-					fmt.Println(key)
-					val.SendMessage(cfgNewMember)
-				}
-			},
-		)
+
+		thisDBAddr, ok := net.DeltaAddress(thisOne, 1000)
+		if ok {
+			store := []string{thisDBAddr}
+			ch.ConnsJoin.Iterate(
+				func(key string, val *net.ShosetConn) {
+					dbKey, ok := net.DeltaAddress(key, 1000)
+					if ok {
+						store = append(store, dbKey)
+					}
+					if key != newMember && key != thisOne {
+						val.SendMessage(cfgNewMember)
+					}
+				},
+			)
+			fmt.Printf("store : %#v\n", store)
+		}
 
 		if dir == "out" {
 		}
@@ -77,6 +100,7 @@ func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
 	case "member":
 		newMember := cfg.GetBindAddress()
 		ch.Join(newMember)
+
 	}
 	return nil
 }

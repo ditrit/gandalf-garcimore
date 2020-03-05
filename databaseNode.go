@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"shoset/net"
 	"strconv"
-	"strings"
 	"time"
 
 	dqlite "github.com/canonical/go-dqlite"
@@ -29,7 +27,6 @@ func NewDatabaseNode(clusterID int, clusterDatabaseConnection string) *DatabaseN
 	databaseNode := new(DatabaseNode)
 	databaseNode.clusterID = clusterID
 	databaseNode.clusterDatabaseDirectory = "/tmp/"
-	databaseNode.clusterDatabaseConnection = getNodeConnection(clusterDatabaseConnection)
 
 	return databaseNode
 }
@@ -89,15 +86,5 @@ func (dn DatabaseNode) addNodesToLeader(databaseClient DatabaseClient) (err erro
 		return errors.Wrap(err, "can't add node")
 	}
 
-	return
-}
-
-func getNodeConnection(clusterConnection string) (clusterDatabaseConnection string) {
-	fmt.Printf("clusterconn: %s\n", clusterConnection)
-	addr, _ := net.GetIP(clusterConnection)
-	clusterConnectionSplit := strings.Split(addr, ":")
-	port, _ := strconv.Atoi(clusterConnectionSplit[1])
-	clusterDatabaseConnection = clusterConnectionSplit[0] + ":" + strconv.Itoa(port+1000)
-	fmt.Println(clusterDatabaseConnection)
 	return
 }
