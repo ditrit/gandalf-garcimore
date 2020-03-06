@@ -9,9 +9,8 @@ import (
 
 // ClusterMember :
 type ClusterMember struct {
-	chaussette     *net.Shoset
-	databaseNode   *DatabaseNode
-	databaseClient *DatabaseClient
+	chaussette   *net.Shoset
+	databaseNode *DatabaseNode
 }
 
 // NewClusterMember :
@@ -27,8 +26,17 @@ func (m ClusterMember) Bind(addr string) error {
 	ipAddr, err := net.GetIP(addr)
 	if err == nil {
 		err = m.chaussette.Bind(ipAddr)
-		//	m.databaseNode = NewDatabaseNode(0, addr) //ID
-		//	m.databaseNode.run()
+		thisDBAddr, ok := net.DeltaAddress(ipAddr, 1000)
+		if ok {
+			//m.databaseClient = NewDatabaseClient()
+
+			id, ok := net.IP2ID(thisDBAddr)
+			if ok {
+				m.databaseNode = NewDatabaseNode(id, thisDBAddr) //ID
+				m.chaussette.Context["node"] = m.databaseNode
+				go m.databaseNode.run()
+			}
+		}
 	}
 	return err
 }
@@ -56,8 +64,11 @@ func clusterInit(logicalName, bindAddress string) {
 	done := make(chan bool)
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
+<<<<<<< HEAD
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers(%#v)\n", bindAddress, getBrothers(bindAddress, member))
+=======
+>>>>>>> e303311788882db921a6d844aaa9edd516bf810e
 	<-done
 
 }
@@ -67,8 +78,11 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
+<<<<<<< HEAD
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers(%#v)\n", bindAddress, getBrothers(bindAddress, member))
+=======
+>>>>>>> e303311788882db921a6d844aaa9edd516bf810e
 	<-done
 }
 
@@ -108,7 +122,15 @@ func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
 					}
 				},
 			)
+<<<<<<< HEAD
 			//fmt.Printf("store : %#v\n", store)
+=======
+			fmt.Printf("store : %#v\n", store)
+			node := ch.Context["node"].(*DatabaseNode)
+			node.clusterDatabaseClient.Cluster = store
+			err := node.addNodesToLeader()
+			fmt.Println(err)
+>>>>>>> e303311788882db921a6d844aaa9edd516bf810e
 		}
 
 		if dir == "out" {

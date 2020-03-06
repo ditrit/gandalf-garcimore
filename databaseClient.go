@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/canonical/go-dqlite/client"
@@ -14,14 +15,13 @@ import (
 
 //DatabaseClient :
 type DatabaseClient struct {
-	cluster    []string
+	Cluster    []string
 	databaseDB map[string]*sql.DB
 }
 
 //NewDatabaseClient :
-func NewDatabaseClient(cluster []string) (databaseClient *DatabaseClient) {
+func NewDatabaseClient() (databaseClient *DatabaseClient) {
 	databaseClient = new(DatabaseClient)
-	databaseClient.cluster = cluster
 	databaseClient.databaseDB = make(map[string]*sql.DB)
 	return
 }
@@ -31,19 +31,21 @@ func (dc DatabaseClient) GetLeader() (*client.Client, error) {
 	store := dc.getStore()
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
 
-	return client.FindLeader(ctx, store, nil)
+	defer cancel()
+	return client.FindLeader(ctx, store, client.WithLogFunc(logFuncf))
 }
 
 //getStore :
 func (dc DatabaseClient) getStore() client.NodeStore {
 	store := client.NewInmemNodeStore()
-	if len(dc.cluster) == 0 {
+	if len(dc.Cluster) == 0 {
 		// TODO handle this case
 	}
-	infos := make([]client.NodeInfo, len(dc.cluster))
-	for i, address := range dc.cluster {
+	fmt.Println("GET STORE CLUSTER")
+	fmt.Println(dc.Cluster)
+	infos := make([]client.NodeInfo, len(dc.Cluster))
+	for i, address := range dc.Cluster {
 		infos[i].ID = uint64(i + 1)
 		infos[i].Address = address
 	}
@@ -79,3 +81,6 @@ func (dc DatabaseClient) GetDatabase(tenant string) *sql.DB {
 	database, _ := dc.open(tenant)
 	return database
 }
+
+//logFuncf :
+func logFuncf(l client.LogLevel, format string, a ...interface{}) {}
