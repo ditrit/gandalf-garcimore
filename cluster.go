@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"shoset/msg"
 	"shoset/net"
+	"time"
 )
 
 // ClusterMember :
@@ -42,11 +43,21 @@ func (m ClusterMember) Link(addr string) (*net.ShosetConn, error) {
 	return m.chaussette.Link(addr)
 }
 
+func getBrothers(address string, member *ClusterMember) []string {
+	bros := []string{address}
+	member.chaussette.ConnsJoin.Iterate(
+		func(key string, val *net.ShosetConn) {
+			bros = append(bros, key)
+		})
+	return bros
+}
+
 func clusterInit(logicalName, bindAddress string) {
 	done := make(chan bool)
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
-
+	time.Sleep(time.Second * time.Duration(5))
+	fmt.Printf("%s.JoinBrothers(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 	<-done
 
 }
@@ -56,25 +67,30 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
-
+	time.Sleep(time.Second * time.Duration(5))
+	fmt.Printf("%s.JoinBrothers(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 	<-done
 }
 
 // HandleConfigJoin :
 func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
-	fmt.Println("NEW HANDLE")
-
 	cfg := message.(msg.ConfigJoin)
 	ch := c.GetCh()
 	dir := c.GetDir()
+	thisOne := ch.GetBindAddr()
+	newMember := cfg.GetBindAddress() // recupere l'adresse distante
+	bros := []string{thisOne}
+	ch.ConnsJoin.Iterate(
+		func(key string, val *net.ShosetConn) {
+			bros = append(bros, key)
+		})
+	fmt.Printf("%s.JoinBrothers(%#v)\n", thisOne, bros)
 	switch cfg.GetCommandName() {
 	case "join":
-		newMember := cfg.GetBindAddress() // recupere l'adresse distante
-
+		//fmt.Printf("%s : event 'join' received from %s\n", thisOne, newMember)
 		if dir == "in" {
 			ch.Join(newMember)
 		}
-		thisOne := ch.GetBindAddr()
 		cfgNewMember := msg.NewCfgMember(newMember)
 
 		thisDBAddr, ok := net.DeltaAddress(thisOne, 1000)
@@ -88,19 +104,19 @@ func HandleConfigJoin(c *net.ShosetConn, message msg.Message) error {
 					}
 					if key != newMember && key != thisOne {
 						val.SendMessage(cfgNewMember)
+						// fmt.Printf("%s : send event new 'member' %s to %s\n", thisOne, newMember, key)
 					}
 				},
 			)
-			fmt.Printf("store : %#v\n", store)
+			//fmt.Printf("store : %#v\n", store)
 		}
 
 		if dir == "out" {
 		}
 
 	case "member":
-		newMember := cfg.GetBindAddress()
+		//fmt.Printf("%s : event 'member' received from %s\n", thisOne, newMember)
 		ch.Join(newMember)
-
 	}
 	return nil
 }
