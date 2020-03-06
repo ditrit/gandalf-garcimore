@@ -26,7 +26,9 @@ type DatabaseNode struct {
 func NewDatabaseNode(clusterID uint64, clusterDatabaseConnection string) *DatabaseNode {
 	databaseNode := new(DatabaseNode)
 	databaseNode.clusterID = clusterID
+	databaseNode.clusterDatabaseConnection = clusterDatabaseConnection
 	databaseNode.clusterDatabaseDirectory = "/tmp/"
+	databaseNode.clusterDatabaseClient = NewDatabaseClient()
 
 	return databaseNode
 }
@@ -67,13 +69,13 @@ func (dn DatabaseNode) startNode(id uint64, dir, address string) (err error) {
 }
 
 //addNodesToLeader :
-func (dn DatabaseNode) addNodesToLeader(databaseClient DatabaseClient) (err error) {
+func (dn DatabaseNode) addNodesToLeader() (err error) {
 	info := client.NodeInfo{
 		ID:      uint64(dn.clusterID),
 		Address: dn.clusterDatabaseConnection,
 	}
 
-	client, err := databaseClient.GetLeader()
+	client, err := dn.clusterDatabaseClient.GetLeader()
 	if err != nil {
 		return errors.Wrap(err, "can't connect to cluster leader")
 	}
