@@ -39,12 +39,25 @@ func main() {
 				command := args[1]
 
 				switch command {
+				case "database":
+					fmt.Println("DATABASE")
+					database2(args[2])
+					/* if len(args) >= 4 {
+						//addr := args[3]
+						done := make(chan bool)
+						toto := []string{"127.0.0.1:10000", "127.0.0.1:10001", "127.0.0.1:10002"}
+						go NewDatabaseNodeCluster("/home/orness/db/", toto).Run()
+						<-done
+					} else {
+						flag.Usage()
+					} */
+					break
 				case "init":
 					if len(args) >= 4 {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						//CREATE CLUSTER
-						fmt.Println("INTI")
+						fmt.Println("INIT")
 
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
