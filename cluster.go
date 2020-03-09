@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"shoset/msg"
 	"shoset/net"
+	"strconv"
 	"time"
 )
 
@@ -19,6 +20,9 @@ func NewClusterMember(logicalName string) *ClusterMember {
 	member.chaussette = net.NewShoset(logicalName, "cl")
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 
+	//member.databaseNode = new(DatabaseNodeCluster)
+	//database := database.NewDatabaseCluster("/tmp/", []string{"127.0.0.1:9000", "127.0.0.1:9001", "127.0.0.1:9002"})
+	//database.Run()
 	return member
 }
 
@@ -50,14 +54,18 @@ func getBrothers(address string, member *ClusterMember) []string {
 	return bros
 }
 
-func database2(add string) {
+func database2(add, id string) {
 	done := make(chan bool)
 
-	id, _ := net.IP2ID(add)
-	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, id)
+	//id, _ := net.IP2ID(add)
+	idi, _ := strconv.Atoi(id)
+	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, uint64(idi))
 	databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
-	databaseNode.addNodesToLeader()
+	if idi != 1 {
+		err := databaseNode.addNodesToLeader()
+		fmt.Println(err)
+	}
 
 	<-done
 }
@@ -70,11 +78,19 @@ func clusterInit(logicalName, bindAddress string) {
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 
-	id, _ := net.IP2ID(bindAddress)
 	add, _ := net.DeltaAddress(bindAddress, 1000)
-	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, id)
-	databaseNode.Run()
+	id, _ := net.IP2ID(add)
+	fmt.Println("TOTO")
+	fmt.Println(id)
+	fmt.Println(add)
+	member.databaseNode = NewDatabaseNodeCluster("/home/orness/db/", add, id)
+	member.databaseNode.Run()
+	time.Sleep(time.Second * time.Duration(5))
 
+	member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
+
+	err := member.databaseNode.addNodesToLeader()
+	fmt.Println(err)
 	<-done
 
 }
@@ -87,14 +103,19 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	time.Sleep(time.Second * time.Duration(5))
 
 	fmt.Printf("%s.JoinBrothers Join(%#v)\n", bindAddress, getBrothers(bindAddress, member))
-
-	id, _ := net.IP2ID(bindAddress)
-	add, _ := net.DeltaAddress(bindAddress, 200)
-	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, id)
-	databaseNode.Run()
-	databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
+	add, _ := net.DeltaAddress(bindAddress, 1000)
+	id, _ := net.IP2ID(add)
+	fmt.Println("TOTO")
+	fmt.Println(id)
+	fmt.Println(add)
+	member.databaseNode = NewDatabaseNodeCluster("/home/orness/db/", add, id)
+	member.databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
-	databaseNode.addNodesToLeader()
+
+	member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
+
+	err := member.databaseNode.addNodesToLeader()
+	fmt.Println(err)
 
 	<-done
 }

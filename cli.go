@@ -40,8 +40,7 @@ func main() {
 
 				switch command {
 				case "database":
-					fmt.Println("DATABASE")
-					database2(args[2])
+					database2(args[2], args[3])
 					/* if len(args) >= 4 {
 						//addr := args[3]
 						done := make(chan bool)
@@ -57,7 +56,7 @@ func main() {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						//CREATE CLUSTER
-						fmt.Println("INIT")
+						fmt.Println("INTI")
 
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
