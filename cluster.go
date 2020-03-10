@@ -13,6 +13,7 @@ import (
 type ClusterMember struct {
 	chaussette   *net.Shoset
 	databaseNode *database.DatabaseNode
+	Store        *[]string
 }
 
 // NewClusterMember :
@@ -85,8 +86,7 @@ func database4(add, id string) {
 	databaseNode.Run()
 }
 
-func clusterInit(logicalName, bindAddress string) {
-	done := make(chan bool)
+func clusterInit(logicalName, bindAddress string) (clusterMember *ClusterMember) {
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
 
@@ -95,46 +95,34 @@ func clusterInit(logicalName, bindAddress string) {
 
 	add, _ := net.DeltaAddress(bindAddress, 1000)
 	id, _ := net.IP2ID(add)
-	fmt.Println("TOTO")
-	fmt.Println(id)
-	fmt.Println(add)
-	//databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(id))
-	//member.databaseNode.Run()
-	time.Sleep(time.Second * time.Duration(5))
+	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
+	member.databaseNode.Run()
 
-	//member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
-	//err := member.databaseNode.addNodesToLeader()
-	//fmt.Println(err)
-	<-done
-
+	return clusterMember
 }
 
-func clusterJoin(logicalName, bindAddress, joinAddress string) {
-	done := make(chan bool)
+func clusterJoin(logicalName, bindAddress, joinAddress string) (clusterMember *ClusterMember) {
+
 	member := NewClusterMember(logicalName)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
-	time.Sleep(time.Second * time.Duration(5))
 
+	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Join(%#v)\n", bindAddress, getBrothers(bindAddress, member))
+
+	member.Store = CreateStore(getBrothers(bindAddress, member))
+	fmt.Println("Store")
+	fmt.Println(member.Store)
 	add, _ := net.DeltaAddress(bindAddress, 1000)
 	id, _ := net.IP2ID(add)
-	fmt.Println("TOTO")
-	fmt.Println(id)
-	fmt.Println(add)
-	//databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(id))
 
+	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
 	member.databaseNode.Run()
-	time.Sleep(time.Second * time.Duration(5))
 
-	//member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
-	//err := member.databaseNode.addNodesToLeader()
-	//fmt.Println(err)
-
-	<-done
+	return member
 }
 
-func CreateStore(bros []string) []string {
+func CreateStore(bros []string) *[]string {
 	store := []string{}
 
 	for _, bro := range bros {
@@ -144,7 +132,7 @@ func CreateStore(bros []string) []string {
 		}
 	}
 
-	return store
+	return &store
 }
 
 // HandleConfigJoin :

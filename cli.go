@@ -61,7 +61,7 @@ func main() {
 					go database4(args[2], args[3])
 					database.List(database.DefaultCluster)
 					fmt.Println("ADD")
-					err := database.AddNodesToLeader(args[2], args[3], database.DefaultCluster)
+					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
 					fmt.Println(err)
 
 					database.List(database.DefaultCluster)
@@ -82,12 +82,14 @@ func main() {
 					break
 				case "add":
 					fmt.Println("ADD")
-					err := database.AddNodesToLeader(args[2], args[3], database.DefaultCluster)
+					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
 					fmt.Println(err)
 
 					break
 				case "init":
 					if len(args) >= 4 {
+						done := make(chan bool)
+
 						LogicalName := args[2]
 						BindAdd := args[3]
 						//CREATE CLUSTER
@@ -100,12 +102,15 @@ func main() {
 						fmt.Println("  Config : " + config)
 						clusterInit(LogicalName, BindAdd)
 
+						<-done
 					} else {
 						flag.Usage()
 					}
 					break
 				case "join": //join
 					if len(args) >= 5 {
+						done := make(chan bool)
+
 						LogicalName := args[2]
 						BindAdd := args[3]
 						JoinAdd := args[4]
@@ -117,7 +122,16 @@ func main() {
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
-						clusterJoin(LogicalName, BindAdd, JoinAdd)
+
+						member := clusterJoin(LogicalName, BindAdd, JoinAdd)
+
+						toto := *member.Store
+						fmt.Println(toto)
+						database.List(toto)
+						fmt.Println("ADD")
+						err := database.AddNodesToLeader(args[3], toto)
+						fmt.Println(err)
+						<-done
 
 					} else {
 						flag.Usage()

@@ -3,24 +3,25 @@ package database
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"shoset/net"
 	"time"
 
 	"github.com/canonical/go-dqlite/client"
 	"github.com/pkg/errors"
 )
 
-func AddNodesToLeader(nodeConnection, nodeId string, defaultcluster []string) (err error) {
+func AddNodesToLeader(nodeConnection string, defaultcluster []string) (err error) {
 	var cluster *[]string
 	cluster = &defaultcluster
 
 	fmt.Println("ADDOUP")
 
-	id, _ := strconv.Atoi(nodeId)
+	id, _ := net.IP2ID(nodeConnection)
+	//id, _ := strconv.Atoi(nodeId)
 	fmt.Println("id")
 	fmt.Println(id)
 	if err != nil {
-		return errors.Wrapf(err, "%s is not a number", nodeId)
+		return errors.Wrapf(err, "%s is not a number", id)
 	}
 	if id == 0 {
 		return fmt.Errorf("ID must be greater than zero")
