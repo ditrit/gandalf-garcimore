@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func list(defaultcluster []string) error {
+func List(defaultcluster []string) error {
 	var cluster *[]string
 	cluster = &defaultcluster
 

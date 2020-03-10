@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"context"
@@ -25,11 +25,7 @@ func getStore(cluster []string) client.NodeStore {
 	store := client.NewInmemNodeStore()
 	if len(cluster) == 0 {
 		fmt.Println("LENGTG 0")
-		cluster = []string{
-			"127.0.0.1:9181",
-			"127.0.0.1:9182",
-			"127.0.0.1:9183",
-		}
+		cluster = DefaultCluster
 	}
 	infos := make([]client.NodeInfo, 3)
 	for i, address := range cluster {

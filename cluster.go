@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"garcimore/database"
 	"shoset/msg"
 	"shoset/net"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 // ClusterMember :
 type ClusterMember struct {
 	chaussette   *net.Shoset
-	databaseNode *DatabaseNodeCluster
+	databaseNode *database.DatabaseNode
 }
 
 // NewClusterMember :
@@ -59,20 +60,29 @@ func database2(add, id string) {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, uint64(idi))
+	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
 	databaseNode.Run()
 	//time.Sleep(time.Second * time.Duration(5))
 
 	<-done
 }
 
-func database3(add, id string) *DatabaseNodeCluster {
+func database3(add, id string) *database.DatabaseNode {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, uint64(idi))
+	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
 	//time.Sleep(time.Second * time.Duration(5))
 	return databaseNode
+}
+
+func database4(add, id string) {
+
+	//id, _ := net.IP2ID(add)
+	idi, _ := strconv.Atoi(id)
+	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
+	//time.Sleep(time.Second * time.Duration(5))
+	databaseNode.Run()
 }
 
 func clusterInit(logicalName, bindAddress string) {
@@ -88,8 +98,8 @@ func clusterInit(logicalName, bindAddress string) {
 	fmt.Println("TOTO")
 	fmt.Println(id)
 	fmt.Println(add)
-	member.databaseNode = NewDatabaseNodeCluster("/home/orness/db/", add, id)
-	member.databaseNode.Run()
+	//databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(id))
+	//member.databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
 
 	//member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
@@ -112,7 +122,8 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	fmt.Println("TOTO")
 	fmt.Println(id)
 	fmt.Println(add)
-	member.databaseNode = NewDatabaseNodeCluster("/home/orness/db/", add, id)
+	//databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(id))
+
 	member.databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
 

@@ -5,18 +5,14 @@ import (
 	b64 "encoding/base64"
 	"flag"
 	"fmt"
+	"garcimore/database"
 	"os"
 )
 
 func main() {
 
 	var (
-		config         string
-		defaultCluster = []string{
-			"127.0.0.1:9181",
-			"127.0.0.1:9182",
-			"127.0.0.1:9183",
-		}
+		config string
 	)
 	flag.Usage = func() {
 		fmt.Printf("Usage of %s:\n", os.Args[0])
@@ -43,7 +39,10 @@ func main() {
 
 				switch command {
 				case "database":
-					database2(args[2], args[3])
+					done := make(chan bool)
+
+					go database4(args[2], args[3])
+					database.List(database.DefaultCluster)
 
 					/* if len(args) >= 4 {
 						//addr := args[3]
@@ -54,13 +53,36 @@ func main() {
 					} else {
 						flag.Usage()
 					} */
+					<-done
+					break
+				case "database2":
+					done := make(chan bool)
+
+					go database4(args[2], args[3])
+					database.List(database.DefaultCluster)
+					fmt.Println("ADD")
+					err := database.AddNodesToLeader(args[2], args[3], database.DefaultCluster)
+					fmt.Println(err)
+
+					database.List(database.DefaultCluster)
+					/* if len(args) >= 4 {
+						//addr := args[3]
+						done := make(chan bool)
+						toto := []string{"127.0.0.1:10000", "127.0.0.1:10001", "127.0.0.1:10002"}
+						go NewDatabaseNodeCluster("/home/orness/db/", toto).Run()
+						<-done
+					} else {
+						flag.Usage()
+					} */
+					<-done
+
 					break
 				case "list":
-					list(defaultCluster)
+					database.List(database.DefaultCluster)
 					break
 				case "add":
 					fmt.Println("ADD")
-					err := addNodesToLeader(args[2], args[3], defaultCluster)
+					err := database.AddNodesToLeader(args[2], args[3], database.DefaultCluster)
 					fmt.Println(err)
 
 					break

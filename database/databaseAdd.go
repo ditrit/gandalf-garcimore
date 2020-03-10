@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"context"
@@ -10,25 +10,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-func addNodesToLeader(idNode string, databaseClusterConnection string, defaultcluster []string) (err error) {
+func AddNodesToLeader(nodeConnection, nodeId string, defaultcluster []string) (err error) {
 	var cluster *[]string
 	cluster = &defaultcluster
 
 	fmt.Println("ADDOUP")
 
-	id, _ := strconv.Atoi(idNode)
+	id, _ := strconv.Atoi(nodeId)
+	fmt.Println("id")
+	fmt.Println(id)
 	if err != nil {
-		return errors.Wrapf(err, "%s is not a number", idNode)
+		return errors.Wrapf(err, "%s is not a number", nodeId)
 	}
 	if id == 0 {
 		return fmt.Errorf("ID must be greater than zero")
 	}
-	if databaseClusterConnection == "" {
-		databaseClusterConnection = fmt.Sprintf("127.0.0.1:918%d", id)
+	if nodeConnection == "" {
+		nodeConnection = fmt.Sprintf("%s%d", defaultBaseAdd, id)
+
 	}
 	info := client.NodeInfo{
 		ID:      uint64(id),
-		Address: databaseClusterConnection,
+		Address: nodeConnection,
 	}
 	fmt.Println(*cluster)
 	client, err := getLeader(*cluster)

@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
 	"fmt"
@@ -10,27 +10,25 @@ import (
 	"github.com/pkg/errors"
 )
 
-type DatabaseNodeCluster struct {
-	databaseClusterDirectory  string
-	databaseClusterConnection string
-	databaseClusterId         uint64
-	databaseClusterNodes      map[string]*dqlite.Node
+type DatabaseNode struct {
+	nodeDirectory  string
+	nodeConnection string
+	nodeId         uint64
 }
 
-func NewDatabaseNodeCluster(databaseClusterDirectory string, databaseClusterConnection string, databaseClusterId uint64) (databaseNodeCluster *DatabaseNodeCluster) {
-	databaseNodeCluster = new(DatabaseNodeCluster)
-	databaseNodeCluster.databaseClusterDirectory = databaseClusterDirectory
-	databaseNodeCluster.databaseClusterConnection = databaseClusterConnection
-	databaseNodeCluster.databaseClusterId = databaseClusterId
-	databaseNodeCluster.databaseClusterNodes = make(map[string]*dqlite.Node)
+func NewDatabaseNode(nodeDirectory string, nodeConnection string, nodeId uint64) (databaseNode *DatabaseNode) {
+	databaseNode = new(DatabaseNode)
+	databaseNode.nodeDirectory = nodeDirectory
+	databaseNode.nodeConnection = nodeConnection
+	databaseNode.nodeId = nodeId
 
 	return
 }
 
-func (dc DatabaseNodeCluster) Run() {
+func (dn DatabaseNode) Run() {
 	//RUN
 	fmt.Println("START")
-	err := dc.startNode(dc.databaseClusterId, dc.databaseClusterDirectory, dc.databaseClusterConnection)
+	err := dn.startNode(dn.nodeId, dn.nodeDirectory, dn.nodeConnection)
 	fmt.Println("ERR")
 	fmt.Println(err)
 
@@ -38,13 +36,14 @@ func (dc DatabaseNodeCluster) Run() {
 	time.Sleep(time.Second * time.Duration(5))
 }
 
-func (dc DatabaseNodeCluster) startNode(id uint64, dir, address string) (err error) {
-
+func (dn DatabaseNode) startNode(id uint64, dir, address string) (err error) {
+	fmt.Println("id")
+	fmt.Println(id)
 	if id == 0 {
 		return fmt.Errorf("ID must be greater than zero")
 	}
 	if address == "" {
-		address = fmt.Sprintf("127.0.0.1:918%d", id)
+		address = fmt.Sprintf("%s%d", defaultBaseAdd, id)
 	}
 	dir = filepath.Join(dir, string(id))
 	if err := os.MkdirAll(dir, 0755); err != nil {
