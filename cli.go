@@ -126,11 +126,16 @@ func main() {
 						member := clusterJoin(LogicalName, BindAdd, JoinAdd)
 
 						toto := *member.Store
-						fmt.Println(toto)
-						database.List(toto)
-						fmt.Println("ADD")
-						err := database.AddNodesToLeader(args[3], toto)
-						fmt.Println(err)
+						if len(toto) == 3 {
+							fmt.Println("LIST")
+							database.List(toto)
+							for i := 1; i < len(toto); i++ {
+								fmt.Println("ADD")
+								err := database.AddNodesToLeader(args[3], toto)
+								fmt.Println(err)
+							}
+						}
+
 						<-done
 
 					} else {

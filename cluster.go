@@ -96,7 +96,7 @@ func clusterInit(logicalName, bindAddress string) (clusterMember *ClusterMember)
 	add, _ := net.DeltaAddress(bindAddress, 1000)
 	id, _ := net.IP2ID(add)
 	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-	member.databaseNode.Run()
+	go member.databaseNode.Run()
 
 	return clusterMember
 }
@@ -117,7 +117,7 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) (clusterMember *C
 	id, _ := net.IP2ID(add)
 
 	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-	member.databaseNode.Run()
+	go member.databaseNode.Run()
 
 	return member
 }

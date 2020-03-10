@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	dqlite "github.com/canonical/go-dqlite"
@@ -39,13 +40,14 @@ func (dn DatabaseNode) Run() {
 func (dn DatabaseNode) startNode(id uint64, dir, address string) (err error) {
 	fmt.Println("id")
 	fmt.Println(id)
+	fmt.Println(id)
 	if id == 0 {
 		return fmt.Errorf("ID must be greater than zero")
 	}
 	if address == "" {
 		address = fmt.Sprintf("%s%d", defaultBaseAdd, id)
 	}
-	dir = filepath.Join(dir, string(id))
+	dir = filepath.Join(dir, strconv.FormatUint(id, 10))
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return errors.Wrapf(err, "can't create %s", dir)
 	}
