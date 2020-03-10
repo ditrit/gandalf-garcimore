@@ -1,17 +1,12 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
 	"time"
 
 	dqlite "github.com/canonical/go-dqlite"
-	"github.com/canonical/go-dqlite/client"
-	"github.com/canonical/go-dqlite/driver"
 	"github.com/pkg/errors"
 )
 
@@ -19,7 +14,6 @@ type DatabaseNodeCluster struct {
 	databaseClusterDirectory  string
 	databaseClusterConnection string
 	databaseClusterId         uint64
-	DatabaseClient            *DatabaseClient
 	databaseClusterNodes      map[string]*dqlite.Node
 }
 
@@ -29,12 +23,7 @@ func NewDatabaseNodeCluster(databaseClusterDirectory string, databaseClusterConn
 	databaseNodeCluster.databaseClusterConnection = databaseClusterConnection
 	databaseNodeCluster.databaseClusterId = databaseClusterId
 	databaseNodeCluster.databaseClusterNodes = make(map[string]*dqlite.Node)
-	databaseNodeCluster.DatabaseClient = NewDatabaseClient2()
 
-	//databaseNodeCluster.DatabaseClient = NewDatabaseClient2()
-	//TODO
-	//databaseNodeCluster.DatabaseClient = NewDatabaseClient(databaseNodeCluster.databaseClusterConnection)
-	//InitDatabaseCluster()
 	return
 }
 
@@ -44,28 +33,28 @@ func (dc DatabaseNodeCluster) Run() {
 	err := dc.startNode(dc.databaseClusterId, dc.databaseClusterDirectory, dc.databaseClusterConnection)
 	fmt.Println("ERR")
 	fmt.Println(err)
+
 	//INIT DB
-	time.Sleep(time.Second * time.Duration(20))
-
-	//dc.initDatabaseCluster()
-	//time.Sleep(time.Second * time.Duration(5))
-	//fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
-
+	time.Sleep(time.Second * time.Duration(5))
 }
 
 func (dc DatabaseNodeCluster) startNode(id uint64, dir, address string) (err error) {
 
-	nodeID := strconv.FormatUint(id, 10)
-	nodeDir := filepath.Join(dir, nodeID)
-	if err := os.MkdirAll(nodeDir, 0755); err != nil {
-		return errors.Wrapf(err, "can't create %s", nodeDir)
+	if id == 0 {
+		return fmt.Errorf("ID must be greater than zero")
+	}
+	if address == "" {
+		address = fmt.Sprintf("127.0.0.1:918%d", id)
+	}
+	dir = filepath.Join(dir, string(id))
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return errors.Wrapf(err, "can't create %s", dir)
 	}
 	node, err := dqlite.New(
-		id, address, nodeDir,
+		uint64(id), address, dir,
 		dqlite.WithBindAddress(address),
-		dqlite.WithNetworkLatency(20*time.Second),
+		dqlite.WithNetworkLatency(20*time.Millisecond),
 	)
-	dc.databaseClusterNodes[nodeID] = node
 	if err != nil {
 		return errors.Wrap(err, "failed to create node")
 	}
@@ -75,38 +64,9 @@ func (dc DatabaseNodeCluster) startNode(id uint64, dir, address string) (err err
 	return
 }
 
-func (dc DatabaseNodeCluster) addNodesToLeader() (err error) {
-	fmt.Println("ADD")
-	fmt.Println(dc.databaseClusterId)
-	fmt.Println(dc.databaseClusterConnection)
-	fmt.Println(dc.DatabaseClient.DatabaseClientCluster)
-	info := client.NodeInfo{
-		ID:      dc.databaseClusterId,
-		Address: dc.databaseClusterConnection,
-	}
-	fmt.Println("info")
-	fmt.Println(info)
-
-	client, err := dc.DatabaseClient.GetLeader()
-	fmt.Println("LEADER")
-	fmt.Println(client)
-	fmt.Println(client)
-	if err != nil {
-		return errors.Wrap(err, "can't connect to cluster leader")
-	}
-	defer client.Close()
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
-
-	if err := client.Add(ctx, info); err != nil {
-		return errors.Wrap(err, "can't add node")
-	}
-	return
-}
-
-func (dc DatabaseNodeCluster) initDatabaseCluster() error {
-	driver, err := driver.New(dc.DatabaseClient.GetStore())
+/*
+func (dc DatabaseNodeCluster) initDatabaseCluster(databaseClient *DatabaseClient) error {
+	driver, err := driver.New(getStore())
 	if err != nil {
 		return errors.Wrapf(err, "failed to create dqlite driver")
 	}
@@ -189,3 +149,4 @@ func (dc DatabaseNodeCluster) initDatabaseCluster() error {
 
 	return nil
 }
+*/

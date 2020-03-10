@@ -3,81 +3,39 @@ package main
 import (
 	"context"
 	"fmt"
-	"shoset/net"
 	"time"
 
 	"github.com/canonical/go-dqlite/client"
 )
 
-type DatabaseClient struct {
-	DatabaseClientCluster []string
-}
+func getLeader(cluster []string) (*client.Client, error) {
+	fmt.Println("LEADER")
+	fmt.Println(cluster)
+	store := getStore(cluster)
 
-func NewDatabaseClient(cluster []string) (databaseClient *DatabaseClient) {
-	databaseClient = new(DatabaseClient)
-	//databaseClient.databaseClientCluster = cluster
-	//databaseClient.DatabaseClientCluster = []string{"127.0.0.1:9000", "127.0.0.1:9001", "127.0.0.1:9002"}
-	return
-}
-
-func NewDatabaseClient2() (databaseClient *DatabaseClient) {
-	databaseClient = new(DatabaseClient)
-	//databaseClient.databaseClientCluster = cluster
-	databaseClient.DatabaseClientCluster = []string{"127.0.0.1:9000", "127.0.0.1:9001", "127.0.0.1:9002"}
-	return
-}
-
-func NewDatabaseClient3() (databaseClient *DatabaseClient) {
-	databaseClient = new(DatabaseClient)
-	//databaseClient.databaseClientCluster = cluster
-	//databaseClient.databaseClientCluster = []string{"127.0.0.1:9000", "127.0.0.1:9001", "127.0.0.1:9002"}
-	return
-}
-
-func (dc DatabaseClient) GetLeader() (*client.Client, error) {
-	store := dc.GetStore2()
-	//store := dc.GetStore()
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	return client.FindLeader(ctx, store, client.WithLogFunc(logFunc))
+	return client.FindLeader(ctx, store)
 }
 
-func (dc DatabaseClient) GetStore() client.NodeStore {
-
+func getStore(cluster []string) client.NodeStore {
+	fmt.Println("STORE")
+	fmt.Println(cluster)
 	store := client.NewInmemNodeStore()
-	if len(dc.DatabaseClientCluster) == 0 {
-	}
-	infos := make([]client.NodeInfo, len(dc.DatabaseClientCluster))
-	for i, address := range dc.DatabaseClientCluster {
-		infos[i].ID, _ = net.IP2ID(address)
-		infos[i].Address = address
-	}
-	fmt.Println("INFOS")
-	fmt.Println(infos)
-	store.Set(context.Background(), infos)
-	return store
-}
-
-func (dc DatabaseClient) GetStore2() client.NodeStore {
-
-	store := client.NewInmemNodeStore()
-	if len(dc.DatabaseClientCluster) == 0 {
-	}
-	infos := make([]client.NodeInfo, len(dc.DatabaseClientCluster))
-	for i, address := range dc.DatabaseClientCluster {
-		//infos[i].ID, _ = net.IP2ID(address)
-		infos[i].Address = address
-		if infos[i].Address == "127.0.0.1:9000" {
-			infos[i].ID = uint64(1)
-		} else if infos[i].Address == "127.0.0.1:9001" {
-			infos[i].ID = uint64(2)
-		} else {
-			infos[i].ID = uint64(3)
+	if len(cluster) == 0 {
+		fmt.Println("LENGTG 0")
+		cluster = []string{
+			"127.0.0.1:9181",
+			"127.0.0.1:9182",
+			"127.0.0.1:9183",
 		}
 	}
-	fmt.Println("INFOS")
-	fmt.Println(infos)
+	infos := make([]client.NodeInfo, 3)
+	for i, address := range cluster {
+		infos[i].ID = uint64(i + 1)
+		infos[i].Address = address
+	}
 	store.Set(context.Background(), infos)
 	return store
 }

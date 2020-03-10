@@ -61,13 +61,18 @@ func database2(add, id string) {
 	idi, _ := strconv.Atoi(id)
 	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, uint64(idi))
 	databaseNode.Run()
-	time.Sleep(time.Second * time.Duration(5))
-	if idi != 1 {
-		err := databaseNode.addNodesToLeader()
-		fmt.Println(err)
-	}
+	//time.Sleep(time.Second * time.Duration(5))
 
 	<-done
+}
+
+func database3(add, id string) *DatabaseNodeCluster {
+
+	//id, _ := net.IP2ID(add)
+	idi, _ := strconv.Atoi(id)
+	databaseNode := NewDatabaseNodeCluster("/home/orness/db/", add, uint64(idi))
+	//time.Sleep(time.Second * time.Duration(5))
+	return databaseNode
 }
 
 func clusterInit(logicalName, bindAddress string) {
@@ -87,10 +92,9 @@ func clusterInit(logicalName, bindAddress string) {
 	member.databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
 
-	member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
-
-	err := member.databaseNode.addNodesToLeader()
-	fmt.Println(err)
+	//member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
+	//err := member.databaseNode.addNodesToLeader()
+	//fmt.Println(err)
 	<-done
 
 }
@@ -112,10 +116,9 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) {
 	member.databaseNode.Run()
 	time.Sleep(time.Second * time.Duration(5))
 
-	member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
-
-	err := member.databaseNode.addNodesToLeader()
-	fmt.Println(err)
+	//member.databaseNode.DatabaseClient.DatabaseClientCluster = CreateStore(getBrothers(bindAddress, member))
+	//err := member.databaseNode.addNodesToLeader()
+	//fmt.Println(err)
 
 	<-done
 }

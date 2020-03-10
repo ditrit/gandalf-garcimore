@@ -8,12 +8,15 @@ import (
 	"os"
 )
 
-const path = "/etc/gandalf/"
-
 func main() {
 
 	var (
-		config string
+		config         string
+		defaultCluster = []string{
+			"127.0.0.1:9181",
+			"127.0.0.1:9182",
+			"127.0.0.1:9183",
+		}
 	)
 	flag.Usage = func() {
 		fmt.Printf("Usage of %s:\n", os.Args[0])
@@ -41,6 +44,7 @@ func main() {
 				switch command {
 				case "database":
 					database2(args[2], args[3])
+
 					/* if len(args) >= 4 {
 						//addr := args[3]
 						done := make(chan bool)
@@ -50,6 +54,15 @@ func main() {
 					} else {
 						flag.Usage()
 					} */
+					break
+				case "list":
+					list(defaultCluster)
+					break
+				case "add":
+					fmt.Println("ADD")
+					err := addNodesToLeader(args[2], args[3], defaultCluster)
+					fmt.Println(err)
+
 					break
 				case "init":
 					if len(args) >= 4 {
