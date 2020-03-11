@@ -61,7 +61,7 @@ func database2(add, id string) {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
+	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
 	databaseNode.Run()
 	//time.Sleep(time.Second * time.Duration(5))
 
@@ -72,16 +72,16 @@ func database3(add, id string) *database.DatabaseNode {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
+	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
 	//time.Sleep(time.Second * time.Duration(5))
 	return databaseNode
 }
 
-func database4(add, id string) {
+func clusterNode(bindAddress, id string) {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode("/home/orness/db/", add, uint64(idi))
+	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, bindAddress, uint64(idi))
 	//time.Sleep(time.Second * time.Duration(5))
 	databaseNode.Run()
 }
@@ -93,10 +93,10 @@ func clusterInit(logicalName, bindAddress string) (clusterMember *ClusterMember)
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 
-	add, _ := net.DeltaAddress(bindAddress, 1000)
+	/* add, _ := net.DeltaAddress(bindAddress, 1000)
 	id, _ := net.IP2ID(add)
 	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-	go member.databaseNode.Run()
+	go member.databaseNode.Run() */
 
 	return clusterMember
 }

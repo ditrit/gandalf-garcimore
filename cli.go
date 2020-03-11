@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"garcimore/database"
 	"os"
+	"shoset/net"
 )
 
 func main() {
@@ -41,9 +42,10 @@ func main() {
 				case "database":
 					done := make(chan bool)
 
-					go database4(args[2], args[3])
-					database.List(database.DefaultCluster)
+					go clusterNode(args[2], args[3])
+					database.List([]string{"127.0.0.1:9001"})
 
+					clusterInit("toto", "127.0.0.1:8001")
 					/* if len(args) >= 4 {
 						//addr := args[3]
 						done := make(chan bool)
@@ -58,7 +60,7 @@ func main() {
 				case "database2":
 					done := make(chan bool)
 
-					go database4(args[2], args[3])
+					go clusterNode(args[2], args[3])
 					database.List(database.DefaultCluster)
 					fmt.Println("ADD")
 					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
@@ -100,6 +102,12 @@ func main() {
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Config : " + config)
+
+						add, _ := net.DeltaAddress(BindAdd, 1000)
+						id, _ := net.IP2ID(add)
+						databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
+						go databaseNode.Run()
+
 						clusterInit(LogicalName, BindAdd)
 
 						<-done
