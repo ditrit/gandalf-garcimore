@@ -42,10 +42,9 @@ func main() {
 				case "database":
 					done := make(chan bool)
 
-					go clusterNode(args[2], args[3])
-					database.List([]string{"127.0.0.1:9001"})
+					go database4(args[2], args[3])
+					database.List(database.DefaultCluster)
 
-					clusterInit("toto", "127.0.0.1:8001")
 					/* if len(args) >= 4 {
 						//addr := args[3]
 						done := make(chan bool)
@@ -60,7 +59,7 @@ func main() {
 				case "database2":
 					done := make(chan bool)
 
-					go clusterNode(args[2], args[3])
+					go database4(args[2], args[3])
 					database.List(database.DefaultCluster)
 					fmt.Println("ADD")
 					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
@@ -104,9 +103,9 @@ func main() {
 						fmt.Println("  Config : " + config)
 
 						add, _ := net.DeltaAddress(BindAdd, 1000)
-						id, _ := net.IP2ID(add)
-						databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-						go databaseNode.Run()
+						//id, _ := net.IP2ID(add)
+						go databaseInit(add, 1)
+						database.List([]string{add})
 
 						clusterInit(LogicalName, BindAdd)
 

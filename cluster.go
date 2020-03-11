@@ -77,11 +77,20 @@ func database3(add, id string) *database.DatabaseNode {
 	return databaseNode
 }
 
-func clusterNode(bindAddress, id string) {
+func database4(add, id string) {
 
 	//id, _ := net.IP2ID(add)
 	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, bindAddress, uint64(idi))
+	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
+	//time.Sleep(time.Second * time.Duration(5))
+	databaseNode.Run()
+}
+
+func databaseInit(add string, id int) {
+
+	//id, _ := net.IP2ID(add)
+	//idi, _ := strconv.Atoi(id)
+	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(id))
 	//time.Sleep(time.Second * time.Duration(5))
 	databaseNode.Run()
 }
