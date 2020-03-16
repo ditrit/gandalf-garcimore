@@ -1,31 +1,28 @@
-package main
+package aggregator
 
 import (
 	"fmt"
-	"garcimore/database"
 	"shoset/msg"
 	"shoset/net"
 	"time"
 )
 
-// ClusterMember :
-type ClusterMember struct {
-	chaussette   *net.Shoset
-	databaseNode *database.DatabaseNode
-	Store        *[]string
+// AggregatorMember :
+type AggregatorMember struct {
+	chaussette *net.Shoset
 }
 
 // NewClusterMember :
-func NewClusterMember(logicalName string) *ClusterMember {
-	member := new(ClusterMember)
-	member.chaussette = net.NewShoset(logicalName, "cl")
+func NewAggregatorMember(logicalName string) *AggregatorMember {
+	member := new(AggregatorMember)
+	member.chaussette = net.NewShoset(logicalName, "ag")
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 
 	return member
 }
 
 // Bind :
-func (m *ClusterMember) Bind(addr string) error {
+func (m *AggregatorMember) Bind(addr string) error {
 	ipAddr, err := net.GetIP(addr)
 	if err == nil {
 		err = m.chaussette.Bind(ipAddr)
@@ -34,16 +31,16 @@ func (m *ClusterMember) Bind(addr string) error {
 }
 
 // Join :
-func (m *ClusterMember) Join(addr string) (*net.ShosetConn, error) {
+func (m *AggregatorMember) Join(addr string) (*net.ShosetConn, error) {
 	return m.chaussette.Join(addr)
 }
 
 // Link :
-func (m *ClusterMember) Link(addr string) (*net.ShosetConn, error) {
+func (m *AggregatorMember) Link(addr string) (*net.ShosetConn, error) {
 	return m.chaussette.Link(addr)
 }
 
-func getBrothers(address string, member *ClusterMember) []string {
+func getBrothers(address string, member *AggregatorMember) []string {
 	bros := []string{address}
 	member.chaussette.ConnsJoin.Iterate(
 		func(key string, val *net.ShosetConn) {
@@ -52,48 +49,26 @@ func getBrothers(address string, member *ClusterMember) []string {
 	return bros
 }
 
-func databaseInit(add string, id int) {
-	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(id))
-	databaseNode.Run()
-}
-
-func clusterInit(logicalName, bindAddress string) (clusterMember *ClusterMember) {
-	member := NewClusterMember(logicalName)
+func AggregatorMemberInit(logicalName, bindAddress string) (aggregatorMember *AggregatorMember) {
+	member := NewAggregatorMember(logicalName)
 	member.Bind(bindAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 
-	return clusterMember
+	return member
 }
 
-func clusterJoin(logicalName, bindAddress, joinAddress string) (clusterMember *ClusterMember) {
+func AggregatorMemberJoin(logicalName, bindAddress, joinAddress string) (aggregatorMember *AggregatorMember) {
 
-	member := NewClusterMember(logicalName)
+	member := NewAggregatorMember(logicalName)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Join(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 
-	member.Store = CreateStore(getBrothers(bindAddress, member))
-	fmt.Println("Store")
-	fmt.Println(member.Store)
-
 	return member
-}
-
-func CreateStore(bros []string) *[]string {
-	store := []string{}
-
-	for _, bro := range bros {
-		thisDBBro, ok := net.DeltaAddress(bro, 1000)
-		if ok {
-			store = append(store, thisDBBro)
-		}
-	}
-
-	return &store
 }
 
 // HandleConfigJoin :

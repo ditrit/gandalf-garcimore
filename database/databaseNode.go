@@ -33,6 +33,11 @@ func (dn DatabaseNode) Run() {
 	time.Sleep(time.Second * time.Duration(5))
 }
 
+func DatabaseMemberInit(add string, id int) {
+	databaseNode := NewDatabaseNode(DefaultNodeDirectory, add, uint64(id))
+	databaseNode.Run()
+}
+
 func (dn DatabaseNode) startNode(id uint64, dir, address string) (err error) {
 
 	if id == 0 {
