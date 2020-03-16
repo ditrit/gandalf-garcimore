@@ -5,35 +5,33 @@ import (
 	"shoset/net"
 )
 
-// HandleConfigJoin :
+// HandleEvent :
 func HandleEvent(c *net.ShosetConn, message msg.Message) error {
-	cfg := message.(msg.ConfigJoin)
+	evt := message.(msg.Event)
 	ch := c.GetCh()
 	dir := c.GetDir()
 	thisOne := ch.GetBindAddr()
-	newMember := cfg.GetBindAddress() // recupere l'adresse distante
 
-	switch cfg.GetCommandName() {
-	case "join":
-		//fmt.Printf("%s : event 'join' received from %s\n", thisOne, newMember)
-		if dir == "in" {
-			ch.Join(newMember)
-		}
-		cfgNewMember := msg.NewCfgMember(newMember)
-		ch.ConnsJoin.Iterate(
+	//fmt.Printf("%s : event 'join' received from %s\n", thisOne, newMember)
+	if dir == "in" {
+		ch.ConnsByType.Get("c").Iterate(
 			func(key string, val *net.ShosetConn) {
-				if key != newMember && key != thisOne {
-					val.SendMessage(cfgNewMember)
+				if key != "TODO TARGET" && key != thisOne {
+					val.SendMessage(evt)
 					// fmt.Printf("%s : send event new 'member' %s to %s\n", thisOne, newMember, key)
 				}
 			},
 		)
-		if dir == "out" {
-		}
-
-	case "member":
-		//fmt.Printf("%s : event 'member' received from %s\n", thisOne, newMember)
-		ch.Join(newMember)
+	}
+	if dir == "out" {
+		ch.ConnsByType.Get("cl").Iterate(
+			func(key string, val *net.ShosetConn) {
+				if key != "TODO TARGET" && key != thisOne {
+					val.SendMessage(evt)
+					// fmt.Printf("%s : send event new 'member' %s to %s\n", thisOne, newMember, key)
+				}
+			},
+		)
 	}
 	return nil
 }

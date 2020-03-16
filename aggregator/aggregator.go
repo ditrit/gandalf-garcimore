@@ -14,7 +14,7 @@ type AggregatorMember struct {
 // NewClusterMember :
 func NewAggregatorMember(logicalName string) *AggregatorMember {
 	member := new(AggregatorMember)
-	member.chaussette = net.NewShoset(logicalName, "ag")
+	member.chaussette = net.NewShoset(logicalName, "a")
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent

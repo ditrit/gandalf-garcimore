@@ -14,7 +14,7 @@ type ConnectorMember struct {
 // NewClusterMember :
 func NewConnectorMember(logicalName string) *ConnectorMember {
 	member := new(ConnectorMember)
-	member.chaussette = net.NewShoset(logicalName, "ag")
+	member.chaussette = net.NewShoset(logicalName, "c")
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent
