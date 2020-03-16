@@ -39,53 +39,8 @@ func main() {
 				command := args[1]
 
 				switch command {
-				case "database":
-					done := make(chan bool)
-
-					go database4(args[2], args[3])
-					database.List(database.DefaultCluster)
-
-					/* if len(args) >= 4 {
-						//addr := args[3]
-						done := make(chan bool)
-						toto := []string{"127.0.0.1:10000", "127.0.0.1:10001", "127.0.0.1:10002"}
-						go NewDatabaseNodeCluster("/home/orness/db/", toto).Run()
-						<-done
-					} else {
-						flag.Usage()
-					} */
-					<-done
-					break
-				case "database2":
-					done := make(chan bool)
-
-					go database4(args[2], args[3])
-					database.List(database.DefaultCluster)
-					fmt.Println("ADD")
-					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
-					fmt.Println(err)
-
-					database.List(database.DefaultCluster)
-					/* if len(args) >= 4 {
-						//addr := args[3]
-						done := make(chan bool)
-						toto := []string{"127.0.0.1:10000", "127.0.0.1:10001", "127.0.0.1:10002"}
-						go NewDatabaseNodeCluster("/home/orness/db/", toto).Run()
-						<-done
-					} else {
-						flag.Usage()
-					} */
-					<-done
-
-					break
 				case "list":
 					database.List(database.DefaultCluster)
-					break
-				case "add":
-					fmt.Println("ADD")
-					err := database.AddNodesToLeader(args[2], database.DefaultCluster)
-					fmt.Println(err)
-
 					break
 				case "init":
 					if len(args) >= 4 {
@@ -94,20 +49,17 @@ func main() {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						//CREATE CLUSTER
-						fmt.Println("INTI")
-
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Config : " + config)
 
+						clusterInit(LogicalName, BindAdd)
+
 						add, _ := net.DeltaAddress(BindAdd, 1000)
-						//id, _ := net.IP2ID(add)
 						go databaseInit(add, 1)
 						database.List([]string{add})
-
-						clusterInit(LogicalName, BindAdd)
 
 						<-done
 					} else {
@@ -122,7 +74,6 @@ func main() {
 						BindAdd := args[3]
 						JoinAdd := args[4]
 						//CREATE CLUSTER
-						fmt.Println("JOIN")
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
@@ -132,16 +83,16 @@ func main() {
 
 						member := clusterJoin(LogicalName, BindAdd, JoinAdd)
 
-						toto := *member.Store
-						if len(toto) == 3 {
-							fmt.Println("LIST")
-							database.List(toto)
-							for i := 1; i < len(toto); i++ {
-								fmt.Println("ADD")
-								err := database.AddNodesToLeader(args[3], toto)
-								fmt.Println(err)
-							}
-						}
+						add, _ := net.DeltaAddress(BindAdd, 1000)
+						id := len(*member.Store)
+
+						go databaseInit(add, id)
+
+						fmt.Println("ADD")
+
+						err := database.AddNodesToLeader(id, add, *member.Store)
+						fmt.Println(err)
+						database.List([]string{add})
 
 						<-done
 

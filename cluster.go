@@ -5,7 +5,6 @@ import (
 	"garcimore/database"
 	"shoset/msg"
 	"shoset/net"
-	"strconv"
 	"time"
 )
 
@@ -22,9 +21,6 @@ func NewClusterMember(logicalName string) *ClusterMember {
 	member.chaussette = net.NewShoset(logicalName, "cl")
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 
-	//member.databaseNode = new(DatabaseNodeCluster)
-	//database := database.NewDatabaseCluster("/tmp/", []string{"127.0.0.1:9000", "127.0.0.1:9001", "127.0.0.1:9002"})
-	//database.Run()
 	return member
 }
 
@@ -56,42 +52,8 @@ func getBrothers(address string, member *ClusterMember) []string {
 	return bros
 }
 
-func database2(add, id string) {
-	done := make(chan bool)
-
-	//id, _ := net.IP2ID(add)
-	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
-	databaseNode.Run()
-	//time.Sleep(time.Second * time.Duration(5))
-
-	<-done
-}
-
-func database3(add, id string) *database.DatabaseNode {
-
-	//id, _ := net.IP2ID(add)
-	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
-	//time.Sleep(time.Second * time.Duration(5))
-	return databaseNode
-}
-
-func database4(add, id string) {
-
-	//id, _ := net.IP2ID(add)
-	idi, _ := strconv.Atoi(id)
-	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(idi))
-	//time.Sleep(time.Second * time.Duration(5))
-	databaseNode.Run()
-}
-
 func databaseInit(add string, id int) {
-
-	//id, _ := net.IP2ID(add)
-	//idi, _ := strconv.Atoi(id)
 	databaseNode := database.NewDatabaseNode(database.DefaultNodeDirectory, add, uint64(id))
-	//time.Sleep(time.Second * time.Duration(5))
 	databaseNode.Run()
 }
 
@@ -101,11 +63,6 @@ func clusterInit(logicalName, bindAddress string) (clusterMember *ClusterMember)
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
-
-	/* add, _ := net.DeltaAddress(bindAddress, 1000)
-	id, _ := net.IP2ID(add)
-	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-	go member.databaseNode.Run() */
 
 	return clusterMember
 }
@@ -122,11 +79,6 @@ func clusterJoin(logicalName, bindAddress, joinAddress string) (clusterMember *C
 	member.Store = CreateStore(getBrothers(bindAddress, member))
 	fmt.Println("Store")
 	fmt.Println(member.Store)
-	add, _ := net.DeltaAddress(bindAddress, 1000)
-	id, _ := net.IP2ID(add)
-
-	member.databaseNode = database.NewDatabaseNode(database.DefaultNodeDirectory, add, id)
-	go member.databaseNode.Run()
 
 	return member
 }

@@ -2,15 +2,13 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/canonical/go-dqlite/client"
 )
 
 func getLeader(cluster []string) (*client.Client, error) {
-	fmt.Println("LEADER")
-	fmt.Println(cluster)
+
 	store := getStore(cluster)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
@@ -20,11 +18,9 @@ func getLeader(cluster []string) (*client.Client, error) {
 }
 
 func getStore(cluster []string) client.NodeStore {
-	fmt.Println("STORE")
-	fmt.Println(cluster)
+
 	store := client.NewInmemNodeStore()
 	if len(cluster) == 0 {
-		fmt.Println("LENGTG 0")
 		cluster = DefaultCluster
 	}
 	infos := make([]client.NodeInfo, 3)
