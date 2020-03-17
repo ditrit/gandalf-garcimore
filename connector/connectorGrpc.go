@@ -8,23 +8,34 @@ import (
 	"net"
 )
 
-//startGrpcServer :
-//GRPC
-func (r ConnectorCommandRoutine) startGrpcServer() {
-	lis, err := net.Listen("tcp", r.ConnectorCommandWorkerConnection)
+type ConnectorGrpc struct {
+	connectorGrpcConnection string
+	connectorGrpcServer     *grpc.Server
+	lis                     *net.Listener
+}
+
+func NewConnectorGrpc(connectorGrpcConnection string) ConnectorGrpc {
+	connectorGrpc = new(ConnectorGrpc)
+	connectorGrpc.lis, err := net.Listen("tcp", r.ConnectorCommandWorkerConnection)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	r.ConnectorCommandGrpcServer = grpc.NewServer()
+	connectorGrpc.connectorGrpcServer = grpc.NewServer()
 
-	pb.RegisterConnectorCommandServer(r.ConnectorCommandGrpcServer, &r)
-	pb.RegisterConnectorEventServer(r.ConnectorCommandGrpcServer, &r)
+	pb.RegisterConnectorCommandServer(connectorGrpc.connectorGrpcServer, &connectorGrpc)
+	pb.RegisterConnectorEventServer(connectorGrpc.connectorGrpcServer, &connectorGrpc)
+}
+
+//GRPC
+//startGrpcServer :
+func (r ConnectorGrpc) startGrpcServer() {
+
 	r.ConnectorCommandGrpcServer.Serve(lis)
 }
 
 //SendCommandMessage :
-func (r ConnectorCommandRoutine) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
+func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
 	commandMessage := message.CommandMessageFromGrpc(in)
 
 	go commandMessage.SendMessageWith(r.ConnectorCommandSendToAggregator)
@@ -33,7 +44,7 @@ func (r ConnectorCommandRoutine) SendCommandMessage(ctx context.Context, in *pb.
 }
 
 //SendCommandMessageReply :
-func (r ConnectorCommandRoutine) SendCommandMessageReply(ctx context.Context, in *pb.CommandMessageReply) (*pb.Empty, error) {
+func (r ConnectorGrpc) SendCommandMessageReply(ctx context.Context, in *pb.CommandMessageReply) (*pb.Empty, error) {
 	commandMessageReply := message.CommandMessageReplyFromGrpc(in)
 
 	go commandMessageReply.SendMessageWith(r.ConnectorCommandSendToAggregator)
@@ -42,7 +53,7 @@ func (r ConnectorCommandRoutine) SendCommandMessageReply(ctx context.Context, in
 }
 
 //WaitCommandMessage :
-func (r ConnectorCommandRoutine) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
+func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
 	target := in.GetWorkerSource()
 	iterator := NewIterator(r.ConnectorMapCommandNameCommandMessage)
 
@@ -56,7 +67,7 @@ func (r ConnectorCommandRoutine) WaitCommandMessage(ctx context.Context, in *pb.
 }
 
 //WaitCommandMessageReply :
-func (r ConnectorCommandRoutine) WaitCommandMessageReply(ctx context.Context, in *pb.CommandMessageWait) (commandMessageReply *pb.CommandMessageReply, err error) {
+func (r ConnectorGrpc) WaitCommandMessageReply(ctx context.Context, in *pb.CommandMessageWait) (commandMessageReply *pb.CommandMessageReply, err error) {
 	target := in.GetWorkerSource()
 	iterator := NewIterator(r.ConnectorMapUUIDCommandMessageReply)
 
@@ -71,7 +82,7 @@ func (r ConnectorCommandRoutine) WaitCommandMessageReply(ctx context.Context, in
 
 //SendEventMessage :
 //TODO REVOIR SERVICE
-func (r ConnectorEventRoutine) SendEventMessage(ctx context.Context, in *pb.EventMessage) (*pb.Empty, error) {
+func (r ConnectorGrpc) SendEventMessage(ctx context.Context, in *pb.EventMessage) (*pb.Empty, error) {
 	eventMessage := message.EventMessageFromGrpc(in)
 	fmt.Println(eventMessage)
 
@@ -81,7 +92,7 @@ func (r ConnectorEventRoutine) SendEventMessage(ctx context.Context, in *pb.Even
 }
 
 //WaitEventMessage :
-func (r ConnectorEventRoutine) WaitEventMessage(ctx context.Context, in *pb.EventMessageWait) (messageEvent *pb.EventMessage, err error) {
+func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessageWait) (messageEvent *pb.EventMessage, err error) {
 	target := in.GetWorkerSource()
 	iterator := NewIterator(r.ConnectorMapEventNameEventMessage)
 

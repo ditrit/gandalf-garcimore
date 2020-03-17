@@ -17,7 +17,7 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	//TODO MAJ MESSAGE ROUTER
 	ch.ConnsByName.Get(name).Iterate(
 		func(key string, val *net.ShosetConn) {
-			if key != "TODO TARGET" && key != thisOne {
+			if key != c.GetBindAddr() && key != thisOne {
 				val.SendMessage(cmd)
 			}
 		},

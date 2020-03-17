@@ -11,10 +11,11 @@ func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 	ch := c.GetCh()
 	thisOne := ch.GetBindAddr()
 
-	//TODO TENANT
+	ch.Queue["evt"].Push(evt, c.ShosetType, c.GetBindAddr())
+
 	ch.ConnsByType.Get("a").Iterate(
 		func(key string, val *net.ShosetConn) {
-			if key != "TODO TARGET" && key != thisOne {
+			if key != c.GetBindAddr() && key != thisOne {
 				val.SendMessage(evt)
 			}
 		},

@@ -16,7 +16,7 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	if dir == "in" {
 		//QUEUE
 		//TODO REMOTE ADD ??
-		ch.Queue["cmd"].Push(cmd, "a", "")
+		ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
 	}
 
 	/* 	if dir == "out" {

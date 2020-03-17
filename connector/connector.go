@@ -8,7 +8,8 @@ import (
 
 // ConnectorMember :
 type ConnectorMember struct {
-	chaussette *net.Shoset
+	chaussette    *net.Shoset
+	connectorGrpc ConnectorGrpc
 }
 
 // NewClusterMember :
@@ -28,6 +29,9 @@ func (m *ConnectorMember) Bind(addr string) error {
 	if err == nil {
 		err = m.chaussette.Bind(ipAddr)
 	}
+	//TODO
+	//member.connectorGrpc = NewConnectorGrpc()
+
 	return err
 }
 
