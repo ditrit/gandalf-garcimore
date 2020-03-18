@@ -9,7 +9,7 @@ import (
 func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 	evt := message.(msg.Event)
 	ch := c.GetCh()
-	dir := c.GetDir()
+	//dir := c.GetDir()
 	//thisOne := ch.GetBindAddr()
 
 	ch.Queue["evt"].Push(evt, c.ShosetType, c.GetBindAddr())

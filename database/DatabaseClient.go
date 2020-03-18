@@ -7,9 +7,18 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var databaseClient *gorm.DB
+//var databaseClient *gorm.DB
 
-func GetDatabaseClient() *gorm.DB {
+func NewDatabaseClient(tenant string) *gorm.DB {
+	databaseClient, err := gorm.Open("sqlite3", tenant+".db")
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	return databaseClient
+}
+
+/* func GetDatabaseClient *gorm.DB {
 	var err error
 	if databaseClient == nil {
 		databaseClient, err = gorm.Open("sqlite3", "context.db")
@@ -18,33 +27,33 @@ func GetDatabaseClient() *gorm.DB {
 		}
 	}
 	return databaseClient
-}
+} */
 
-func InitDatabaseCluster() (err error) {
+func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
-	GetDatabaseClient().AutoMigrate(&models.Aggregator{}, &models.Application{}, &models.Cluster{}, &models.CommandType{},
+	databaseClient.AutoMigrate(&models.Aggregator{}, &models.Application{}, &models.Cluster{}, &models.CommandType{},
 		&models.ConnectorType{}, &models.Connector{}, &models.Organisation{}, &models.Role{}, &models.Tenant{}, &models.User{})
 
-	GetDatabaseClient().Create(&models.Aggregator{Name: "Aggregator1"})
-	GetDatabaseClient().Create(&models.Aggregator{Name: "Aggregator2"})
+	databaseClient.Create(&models.Aggregator{Name: "Aggregator1"})
+	databaseClient.Create(&models.Aggregator{Name: "Aggregator2"})
 
-	GetDatabaseClient().Create(&models.Application{Name: "Application1"})
-	GetDatabaseClient().Create(&models.Application{Name: "Application2"})
+	databaseClient.Create(&models.Application{Name: "Application1"})
+	databaseClient.Create(&models.Application{Name: "Application2"})
 
-	GetDatabaseClient().Create(&models.Cluster{Name: "Cluster1"})
-	GetDatabaseClient().Create(&models.Cluster{Name: "Cluster2"})
+	databaseClient.Create(&models.Cluster{Name: "Cluster1"})
+	databaseClient.Create(&models.Cluster{Name: "Cluster2"})
 
-	GetDatabaseClient().Create(&models.CommandType{Name: "Command_type1"})
-	GetDatabaseClient().Create(&models.CommandType{Name: "Command_type1"})
+	databaseClient.Create(&models.CommandType{Name: "Command_type1"})
+	databaseClient.Create(&models.CommandType{Name: "Command_type1"})
 
-	GetDatabaseClient().Create(&models.ConnectorType{Name: "Connector_type1"})
-	GetDatabaseClient().Create(&models.ConnectorType{Name: "Connector_type2"})
+	databaseClient.Create(&models.ConnectorType{Name: "Connector_type1"})
+	databaseClient.Create(&models.ConnectorType{Name: "Connector_type2"})
 
-	GetDatabaseClient().Create(&models.Connector{Name: "Connector1"})
-	GetDatabaseClient().Create(&models.Connector{Name: "Connector2"})
+	databaseClient.Create(&models.Connector{Name: "Connector1"})
+	databaseClient.Create(&models.Connector{Name: "Connector2"})
 
-	GetDatabaseClient().Create(&models.Tenant{Name: "Tenant1"})
-	GetDatabaseClient().Create(&models.Tenant{Name: "Tenant2"})
+	databaseClient.Create(&models.Tenant{Name: "Tenant1"})
+	databaseClient.Create(&models.Tenant{Name: "Tenant2"})
 
 	return
 }

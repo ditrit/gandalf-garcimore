@@ -20,7 +20,7 @@ func NewConnectorMember(logicalName, tenant string) *ConnectorMember {
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent
-
+	//member.connectorGrpc = NewConnectorGrpc("", member.chaussette.)
 	return member
 }
 
@@ -55,8 +55,8 @@ func getBrothers(address string, member *ConnectorMember) []string {
 	return bros
 }
 
-func ConnectorMemberInit(logicalName, bindAddress string) (connectorMember *ConnectorMember) {
-	member := NewConnectorMember(logicalName)
+func ConnectorMemberInit(logicalName, bindAddress, tenant string) (connectorMember *ConnectorMember) {
+	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
@@ -65,9 +65,9 @@ func ConnectorMemberInit(logicalName, bindAddress string) (connectorMember *Conn
 	return member
 }
 
-func ConnectorMemberJoin(logicalName, bindAddress, joinAddress string) (connectorMember *ConnectorMember) {
+func ConnectorMemberJoin(logicalName, bindAddress, joinAddress, tenant string) (connectorMember *ConnectorMember) {
 
-	member := NewConnectorMember(logicalName)
+	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
 
