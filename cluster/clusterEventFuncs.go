@@ -15,7 +15,7 @@ func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 
 	ch.ConnsByType.Get("a").Iterate(
 		func(key string, val *net.ShosetConn) {
-			if key != c.GetBindAddr() && key != thisOne {
+			if key != c.GetBindAddr() && key != thisOne && c.GetCh().Context["tenant"] == val.GetCh().Context["tenant"] {
 				val.SendMessage(evt)
 			}
 		},
