@@ -13,7 +13,7 @@ func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 	thisOne := ch.GetBindAddr()
 
 	//TODO VERIF TENANT
-	if evt.GetTenant() == "toto" {
+	if evt.GetTenant() == ch.Context["tenant"] {
 		ch.Queue["evt"].Push(evt, c.ShosetType, c.GetBindAddr())
 
 		//fmt.Printf("%s : event 'join' received from %s\n", thisOne, newMember)

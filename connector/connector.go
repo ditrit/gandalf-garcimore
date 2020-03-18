@@ -13,9 +13,10 @@ type ConnectorMember struct {
 }
 
 // NewClusterMember :
-func NewConnectorMember(logicalName string) *ConnectorMember {
+func NewConnectorMember(logicalName, tenant string) *ConnectorMember {
 	member := new(ConnectorMember)
 	member.chaussette = net.NewShoset(logicalName, "c")
+	member.chaussette.Context["tenant"] = tenant
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent

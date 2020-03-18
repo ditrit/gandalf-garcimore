@@ -14,7 +14,7 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 
 	if dir == "in" {
 		//TODO VERIF TENANT
-		if cmd.GetTenant() == "toto" {
+		if cmd.GetTenant() == ch.Context["tenant"] {
 			ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
 			if c.GetShosetType() == "cl" {
 				//TODO GET NAME FROM MESSAGE

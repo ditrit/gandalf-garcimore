@@ -12,9 +12,10 @@ type AggregatorMember struct {
 }
 
 // NewClusterMember :
-func NewAggregatorMember(logicalName string) *AggregatorMember {
+func NewAggregatorMember(logicalName, tenant string) *AggregatorMember {
 	member := new(AggregatorMember)
 	member.chaussette = net.NewShoset(logicalName, "a")
+	member.chaussette.Context["tenant"] = tenant
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent
@@ -50,8 +51,8 @@ func getBrothers(address string, member *AggregatorMember) []string {
 	return bros
 }
 
-func AggregatorMemberInit(logicalName, bindAddress string) (aggregatorMember *AggregatorMember) {
-	member := NewAggregatorMember(logicalName)
+func AggregatorMemberInit(logicalName, bindAddress, tenant string) (aggregatorMember *AggregatorMember) {
+	member := NewAggregatorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
@@ -60,9 +61,9 @@ func AggregatorMemberInit(logicalName, bindAddress string) (aggregatorMember *Ag
 	return member
 }
 
-func AggregatorMemberJoin(logicalName, bindAddress, joinAddress string) (aggregatorMember *AggregatorMember) {
+func AggregatorMemberJoin(logicalName, bindAddress, joinAddress, tenant string) (aggregatorMember *AggregatorMember) {
 
-	member := NewAggregatorMember(logicalName)
+	member := NewAggregatorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 	member.Join(joinAddress)
 
