@@ -5,29 +5,27 @@ import (
 	pb "garcimore/grpc"
 	"log"
 	"net"
+	"shoset/msg"
 	sn "shoset/net"
+	"time"
 
 	"google.golang.org/grpc"
 )
 
 type ConnectorGrpc struct {
-	connectorGrpcConnection string
-	connectorGrpcServer     *grpc.Server
-	lis                     net.Listener
-	shosetConn              *sn.ShosetConn
+	GrpcConnection     string
+	ShosetConn         *sn.ShosetConn
+	MapWorkerIterators map[string][]*msg.Iterator
+	CommandChannel     chan msg.Message
+	EventChannel       chan msg.Message
 }
 
-func NewConnectorGrpc(connectorGrpcConnection string, shosetConn *sn.ShosetConn) (connectorGrpc ConnectorGrpc, err error) {
-	connectorGrpc.shosetConn = shosetConn
-	connectorGrpc.lis, err = net.Listen("tcp", connectorGrpcConnection)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	connectorGrpc.connectorGrpcServer = grpc.NewServer()
-
-	pb.RegisterConnectorCommandServer(connectorGrpc.connectorGrpcServer, &connectorGrpc)
-	pb.RegisterConnectorEventServer(connectorGrpc.connectorGrpcServer, &connectorGrpc)
+func NewConnectorGrpc(GrpcConnection string, shosetConn *sn.ShosetConn) (connectorGrpc ConnectorGrpc, err error) {
+	connectorGrpc.ShosetConn = shosetConn
+	connectorGrpc.GrpcConnection = GrpcConnection
+	connectorGrpc.MapWorkerIterators = make(map[string][]*msg.Iterator)
+	connectorGrpc.CommandChannel = make(chan msg.Message)
+	connectorGrpc.EventChannel = make(chan msg.Message)
 
 	return
 }
@@ -35,17 +33,33 @@ func NewConnectorGrpc(connectorGrpcConnection string, shosetConn *sn.ShosetConn)
 //GRPC
 //startGrpcServer :
 func (r ConnectorGrpc) startGrpcServer() {
+	lis, err := net.Listen("tcp", r.GrpcConnection)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
 
-	r.connectorGrpcServer.Serve(r.lis)
+	connectorGrpcServer := grpc.NewServer()
+
+	pb.RegisterConnectorCommandServer(connectorGrpcServer, &r)
+	pb.RegisterConnectorEventServer(connectorGrpcServer, &r)
+	connectorGrpcServer.Serve(lis)
 }
 
 //SendCommandMessage :
 func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
-	command := pb.CommandFromGrpc(in)
-	//TODO
-	//r.shosetConn.SendMessage(command)
+	cmd := pb.CommandFromGrpc(in)
+	ch := r.ShosetConn.GetCh()
+	thisOne := ch.GetBindAddr()
 
-	return &pb.CommandMessageUUID{UUID: command.UUID}, nil
+	r.ShosetConn.GetCh().ConnsByType.Get("a").Iterate(
+		func(key string, val *sn.ShosetConn) {
+			if key != r.ShosetConn.GetBindAddr() && key != thisOne {
+				val.SendMessage(cmd)
+			}
+		},
+	)
+
+	return &pb.CommandMessageUUID{UUID: cmd.UUID}, nil
 }
 
 //TODO USELESS
@@ -60,16 +74,49 @@ func (r ConnectorGrpc) SendCommandMessageReply(ctx context.Context, in *pb.Comma
 
 //WaitCommandMessage :
 func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
-	/* 	target := in.GetWorkerSource()
-	   	iterator := NewIterator(r.ConnectorMapCommandNameCommandMessage)
+	target := in.GetWorkerSource()
+	ch := r.ShosetConn.GetCh()
+	iterator := msg.NewIterator(ch.Queue["cmd"])
 
-	   	r.ConnectorMapWorkerIterators[target] = append(r.ConnectorMapWorkerIterators[target], iterator)
+	r.MapWorkerIterators[target] = append(r.MapWorkerIterators[target], iterator)
 
-	   	go r.runIteratorCommandMessage(target, in.GetValue(), iterator, r.ConnectorCommandChannel)
-	   	messageChannel := <-r.ConnectorCommandChannel
-	   	commandMessage = pb.CommandToGrpc(messageChannel) */
+	go r.runIterator(target, in.GetValue(), "cmd", iterator, r.CommandChannel)
+	messageChannel := <-r.CommandChannel
+	commandMessage = pb.CommandToGrpc(messageChannel.(msg.Command))
 
 	return
+}
+
+func (r ConnectorGrpc) runIterator(target, value, msgtype string, iterator *msg.Iterator, channel chan msg.Message) {
+	notfound := true
+	for notfound {
+		iterator.PrintQueue()
+		messageIterator := iterator.Get()
+
+		if messageIterator != nil {
+			if msgtype == "cmd" {
+				message := (messageIterator.GetMessage()).(msg.Command)
+
+				if value == message.Command {
+					channel <- message
+
+					notfound = false
+				}
+			} else if msgtype == "evt" {
+				message := (messageIterator.GetMessage()).(msg.Event)
+
+				if value == message.Event {
+					channel <- message
+
+					notfound = false
+				}
+			}
+
+		}
+
+		time.Sleep(time.Duration(2000) * time.Millisecond)
+	}
+	delete(r.MapWorkerIterators, target)
 }
 
 //TODO USELESS
@@ -89,10 +136,18 @@ func (r ConnectorGrpc) WaitCommandMessageReply(ctx context.Context, in *pb.Comma
 
 //SendEventMessage :
 func (r ConnectorGrpc) SendEventMessage(ctx context.Context, in *pb.EventMessage) (*pb.Empty, error) {
-	event := pb.EventFromGrpc(in)
+	evt := pb.EventFromGrpc(in)
 
-	//TODO
-	//r.shosetConn.SendMessage(event)
+	ch := r.ShosetConn.GetCh()
+	thisOne := ch.GetBindAddr()
+
+	r.ShosetConn.GetCh().ConnsByType.Get("a").Iterate(
+		func(key string, val *sn.ShosetConn) {
+			if key != r.ShosetConn.GetBindAddr() && key != thisOne {
+				val.SendMessage(evt)
+			}
+		},
+	)
 
 	return &pb.Empty{}, nil
 	/* 	eventMessage := message.EventMessageFromGrpc(in)
@@ -105,15 +160,16 @@ func (r ConnectorGrpc) SendEventMessage(ctx context.Context, in *pb.EventMessage
 
 //WaitEventMessage :
 func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessageWait) (messageEvent *pb.EventMessage, err error) {
-	/* 	target := in.GetWorkerSource()
-	   	iterator := NewIterator(r.ConnectorMapEventNameEventMessage)
+	target := in.GetWorkerSource()
+	ch := r.ShosetConn.GetCh()
+	iterator := msg.NewIterator(ch.Queue["evt"])
 
-	   	r.ConnectorMapWorkerIterators[in.GetEvent()] = append(r.ConnectorMapWorkerIterators[in.GetEvent()], iterator)
+	r.MapWorkerIterators[in.GetEvent()] = append(r.MapWorkerIterators[in.GetEvent()], iterator)
 
-	   	go r.runIterator(target, in.GetEvent(), iterator, r.ConnectorEventChannel)
+	go r.runIterator(target, in.GetEvent(), "evt", iterator, r.EventChannel)
 
-	   	messageChannel := <-r.ConnectorEventChannel
-	   	messageEvent = message.EventMessageToGrpc(messageChannel)
-	*/
+	messageChannel := <-r.EventChannel
+	messageEvent = pb.EventToGrpc(messageChannel.(msg.Event))
+
 	return
 }
