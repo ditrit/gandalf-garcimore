@@ -14,6 +14,7 @@ func NewDatabaseClient(tenant string) *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
+	InitTenantDatabase(databaseClient)
 
 	return databaseClient
 }

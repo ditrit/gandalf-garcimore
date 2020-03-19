@@ -5,19 +5,26 @@ import (
 	"garcimore/database"
 	"shoset/net"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 // ClusterMember :
 type ClusterMember struct {
-	chaussette   *net.Shoset
-	databaseNode *database.DatabaseNode
-	Store        *[]string
+	chaussette        *net.Shoset
+	databaseNode      *database.DatabaseNode
+	Store             *[]string
+	MapDatabaseClient map[string]*gorm.DB
 }
 
 // NewClusterMember :
 func NewClusterMember(logicalName string) *ClusterMember {
 	member := new(ClusterMember)
 	member.chaussette = net.NewShoset(logicalName, "cl")
+	member.MapDatabaseClient = make(map[string]*gorm.DB)
+
+	member.chaussette.Context["database"] = member.MapDatabaseClient
+
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
 	member.chaussette.Handle["event"] = HandleEvent
