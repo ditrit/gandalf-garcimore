@@ -62,16 +62,6 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	return &pb.CommandMessageUUID{UUID: cmd.UUID}, nil
 }
 
-//TODO USELESS
-//SendCommandMessageReply :
-func (r ConnectorGrpc) SendCommandMessageReply(ctx context.Context, in *pb.CommandMessageReply) (*pb.Empty, error) {
-	/* 	commandMessageReply := message.CommandMessageReplyFromGrpc(in)
-
-	   	go commandMessageReply.SendMessageWith(r.ConnectorCommandSendToAggregator)
-	*/
-	return &pb.Empty{}, nil
-}
-
 //WaitCommandMessage :
 func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
 	target := in.GetWorkerSource()
@@ -117,21 +107,6 @@ func (r ConnectorGrpc) runIterator(target, value, msgtype string, iterator *msg.
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
 	delete(r.MapWorkerIterators, target)
-}
-
-//TODO USELESS
-//WaitCommandMessageReply :
-func (r ConnectorGrpc) WaitCommandMessageReply(ctx context.Context, in *pb.CommandMessageWait) (commandMessageReply *pb.CommandMessageReply, err error) {
-	/* 	target := in.GetWorkerSource()
-	   	iterator := NewIterator(r.ConnectorMapUUIDCommandMessageReply)
-
-	   	r.ConnectorMapWorkerIterators[target] = append(r.ConnectorMapWorkerIterators[target], iterator)
-
-	   	go r.runIteratorCommandMessageReply(target, in.GetValue(), iterator, r.ConnectorCommandReplyChannel)
-	   	messageReplyChannel := <-r.ConnectorCommandReplyChannel
-	   	commandMessageReply = message.CommandMessageReplyToGrpc(messageReplyChannel)
-	*/
-	return
 }
 
 //SendEventMessage :
