@@ -9,6 +9,7 @@ import (
 	sn "shoset/net"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
@@ -64,49 +65,16 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 
 //WaitCommandMessage :
 func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
-	target := in.GetWorkerSource()
 	ch := r.ShosetConn.GetCh()
 	iterator := msg.NewIterator(ch.Queue["cmd"])
 
-	r.MapWorkerIterators[target] = append(r.MapWorkerIterators[target], iterator)
+	r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
 
-	go r.runIterator(target, in.GetValue(), "cmd", iterator, r.CommandChannel)
+	go r.runIterator(in.GetIteratorId(), in.GetValue(), "cmd", iterator, r.CommandChannel)
 	messageChannel := <-r.CommandChannel
 	commandMessage = pb.CommandToGrpc(messageChannel.(msg.Command))
 
 	return
-}
-
-func (r ConnectorGrpc) runIterator(target, value, msgtype string, iterator *msg.Iterator, channel chan msg.Message) {
-	notfound := true
-	for notfound {
-		iterator.PrintQueue()
-		messageIterator := iterator.Get()
-
-		if messageIterator != nil {
-			if msgtype == "cmd" {
-				message := (messageIterator.GetMessage()).(msg.Command)
-
-				if value == message.Command {
-					channel <- message
-
-					notfound = false
-				}
-			} else if msgtype == "evt" {
-				message := (messageIterator.GetMessage()).(msg.Event)
-
-				if value == message.Event {
-					channel <- message
-
-					notfound = false
-				}
-			}
-
-		}
-
-		time.Sleep(time.Duration(2000) * time.Millisecond)
-	}
-	delete(r.MapWorkerIterators, target)
 }
 
 //SendEventMessage :
@@ -135,16 +103,69 @@ func (r ConnectorGrpc) SendEventMessage(ctx context.Context, in *pb.EventMessage
 
 //WaitEventMessage :
 func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessageWait) (messageEvent *pb.EventMessage, err error) {
-	target := in.GetWorkerSource()
 	ch := r.ShosetConn.GetCh()
 	iterator := msg.NewIterator(ch.Queue["evt"])
 
-	r.MapWorkerIterators[in.GetEvent()] = append(r.MapWorkerIterators[in.GetEvent()], iterator)
+	r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
 
-	go r.runIterator(target, in.GetEvent(), "evt", iterator, r.EventChannel)
+	go r.runIterator(in.GetIteratorId(), in.GetEvent(), "evt", iterator, r.EventChannel)
 
 	messageChannel := <-r.EventChannel
 	messageEvent = pb.EventToGrpc(messageChannel.(msg.Event))
 
 	return
+}
+
+//TODO REFACTORING
+//CreateIteratorCommand :
+func (r ConnectorGrpc) CreateIteratorCommand(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
+	ch := r.ShosetConn.GetCh()
+	iterator := msg.NewIterator(ch.Queue["cmd"])
+	index := uuid.New()
+	r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	iteratorMessage = &pb.IteratorMessage{Id: index.String()}
+
+	return
+}
+
+//CreateIteratorEvent :
+func (r ConnectorGrpc) CreateIteratorEvent(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
+	ch := r.ShosetConn.GetCh()
+	iterator := msg.NewIterator(ch.Queue["evt"])
+	index := uuid.New()
+	r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	iteratorMessage = &pb.IteratorMessage{Id: index.String()}
+	return
+}
+
+func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *msg.Iterator, channel chan msg.Message) {
+	notfound := true
+	for notfound {
+		iterator.PrintQueue()
+		messageIterator := iterator.Get()
+
+		if messageIterator != nil {
+			if msgtype == "cmd" {
+				message := (messageIterator.GetMessage()).(msg.Command)
+
+				if value == message.Command {
+					channel <- message
+
+					notfound = false
+				}
+			} else if msgtype == "evt" {
+				message := (messageIterator.GetMessage()).(msg.Event)
+
+				if value == message.Event {
+					channel <- message
+
+					notfound = false
+				}
+			}
+
+		}
+
+		time.Sleep(time.Duration(2000) * time.Millisecond)
+	}
+	delete(r.MapWorkerIterators, iteratorId)
 }
