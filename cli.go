@@ -125,15 +125,17 @@ func main() {
 
 						LogicalName := args[2]
 						BindAdd := args[3]
+						Tenant := args[4]
 
 						//CREATE AGGREGATOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Config : " + config)
 
-						aggregator.AggregatorMemberInit(LogicalName, BindAdd)
+						aggregator.AggregatorMemberInit(LogicalName, BindAdd, Tenant)
 
 						<-done
 					}
@@ -145,6 +147,7 @@ func main() {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						JoinAdd := args[4]
+						Tenant := args[5]
 
 						//CREATE AGGREGATOR
 						fmt.Println("Running Gandalf with:")
@@ -152,9 +155,10 @@ func main() {
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Join Address : " + JoinAdd)
+						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Config : " + config)
 
-						aggregator.AggregatorMemberJoin(LogicalName, BindAdd, JoinAdd)
+						aggregator.AggregatorMemberJoin(LogicalName, BindAdd, JoinAdd, Tenant)
 						<-done
 					}
 					break
@@ -173,15 +177,17 @@ func main() {
 
 						LogicalName := args[2]
 						BindAdd := args[3]
+						Tenant := args[4]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberInit(LogicalName, BindAdd)
+						connector.ConnectorMemberInit(LogicalName, BindAdd, Tenant)
 
 						<-done
 					}
@@ -193,6 +199,7 @@ func main() {
 						LogicalName := args[2]
 						BindAdd := args[3]
 						JoinAdd := args[4]
+						Tenant := args[5]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
@@ -200,9 +207,10 @@ func main() {
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Join Address : " + JoinAdd)
+						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberJoin(LogicalName, BindAdd, JoinAdd)
+						connector.ConnectorMemberJoin(LogicalName, BindAdd, JoinAdd, Tenant)
 						<-done
 					}
 					break
