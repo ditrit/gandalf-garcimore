@@ -16,13 +16,12 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	//dir := c.GetDir()
 	thisOne := ch.GetBindAddr()
 	mapDatabaseClient := ch.Context["database"].(map[string]*gorm.DB)
+
 	app := GetApplicationContext(cmd, mapDatabaseClient[cmd.GetTenant()])
+	cmd.GetTarget()["Aggregator"] = app.Aggregator.Name
+	cmd.GetTarget()["Connector"] = app.Connector.Name
 
-	//TODO REQUEST
-	name := "toto"
-	//TODO MAJ MESSAGE ROUTER
-
-	ch.ConnsByName.Get(name).Iterate(
+	ch.ConnsByName.Get(cmd.GetTarget()["Aggregator"]).Iterate(
 		func(key string, val *net.ShosetConn) {
 			if key != c.GetBindAddr() && key != thisOne && c.GetCh().Context["tenant"] == val.GetCh().Context["tenant"] {
 				val.SendMessage(cmd)
@@ -43,8 +42,7 @@ func GetDatabaseClientByTenant(tenant string, mapDatabaseClient map[string]*gorm
 
 // GetDatabaseClientByTenant
 func GetApplicationContext(cmd msg.Command, client *gorm.DB) (applicationContext models.Application) {
-
-	client.Where("tenant = ? AND connectorType = ? AND commandType = ?", cmd.Tenant, cmd.ConnectorType, cmd.CommandType).First(&applicationContext)
+	client.Where("tenant = ? AND connectorType = ? AND commandType = ?", cmd.Tenant, cmd.GetTarget()["ConnectorType"], cmd.GetTarget()["CommandType"]).First(&applicationContext)
 
 	return
 }
