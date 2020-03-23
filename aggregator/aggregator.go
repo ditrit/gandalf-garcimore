@@ -51,9 +51,10 @@ func getBrothers(address string, member *AggregatorMember) []string {
 	return bros
 }
 
-func AggregatorMemberInit(logicalName, bindAddress, tenant string) (aggregatorMember *AggregatorMember) {
+func AggregatorMemberInit(logicalName, tenant, bindAddress, linkAddress string) (aggregatorMember *AggregatorMember) {
 	member := NewAggregatorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.Link(linkAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
@@ -61,10 +62,11 @@ func AggregatorMemberInit(logicalName, bindAddress, tenant string) (aggregatorMe
 	return member
 }
 
-func AggregatorMemberJoin(logicalName, bindAddress, joinAddress, tenant string) (aggregatorMember *AggregatorMember) {
+func AggregatorMemberJoin(logicalName, tenant, bindAddress, linkAddress, joinAddress string) (aggregatorMember *AggregatorMember) {
 
 	member := NewAggregatorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.Link(linkAddress)
 	member.Join(joinAddress)
 
 	time.Sleep(time.Second * time.Duration(5))

@@ -124,18 +124,20 @@ func main() {
 						done := make(chan bool)
 
 						LogicalName := args[2]
-						BindAdd := args[3]
-						Tenant := args[4]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
 
 						//CREATE AGGREGATOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
-						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
 						fmt.Println("  Config : " + config)
 
-						aggregator.AggregatorMemberInit(LogicalName, BindAdd, Tenant)
+						aggregator.AggregatorMemberInit(LogicalName, Tenant, BindAdd, LinkAdd)
 
 						<-done
 					}
@@ -145,20 +147,22 @@ func main() {
 						done := make(chan bool)
 
 						LogicalName := args[2]
-						BindAdd := args[3]
-						JoinAdd := args[4]
-						Tenant := args[5]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
+						JoinAdd := args[6]
 
 						//CREATE AGGREGATOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
-						fmt.Println("  Bind Address : " + BindAdd)
-						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
 
-						aggregator.AggregatorMemberJoin(LogicalName, BindAdd, JoinAdd, Tenant)
+						aggregator.AggregatorMemberJoin(LogicalName, Tenant, BindAdd, LinkAdd, JoinAdd)
 						<-done
 					}
 					break
@@ -176,18 +180,20 @@ func main() {
 						done := make(chan bool)
 
 						LogicalName := args[2]
-						BindAdd := args[3]
-						Tenant := args[4]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
-						fmt.Println("  Bind Address : " + BindAdd)
 						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberInit(LogicalName, BindAdd, Tenant)
+						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, LinkAdd)
 
 						<-done
 					}
@@ -197,20 +203,22 @@ func main() {
 						done := make(chan bool)
 
 						LogicalName := args[2]
-						BindAdd := args[3]
-						JoinAdd := args[4]
-						Tenant := args[5]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
+						JoinAdd := args[6]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
 						fmt.Println("  Logical Name : " + LogicalName)
-						fmt.Println("  Bind Address : " + BindAdd)
-						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberJoin(LogicalName, BindAdd, JoinAdd, Tenant)
+						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, LinkAdd, JoinAdd)
 						<-done
 					}
 					break

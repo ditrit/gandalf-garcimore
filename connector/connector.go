@@ -55,9 +55,10 @@ func getBrothers(address string, member *ConnectorMember) []string {
 	return bros
 }
 
-func ConnectorMemberInit(logicalName, bindAddress, tenant string) (connectorMember *ConnectorMember) {
+func ConnectorMemberInit(logicalName, tenant, bindAddress, linkAddress string) (connectorMember *ConnectorMember) {
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.Link(linkAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
@@ -65,10 +66,11 @@ func ConnectorMemberInit(logicalName, bindAddress, tenant string) (connectorMemb
 	return member
 }
 
-func ConnectorMemberJoin(logicalName, bindAddress, joinAddress, tenant string) (connectorMember *ConnectorMember) {
+func ConnectorMemberJoin(logicalName, tenant, bindAddress, linkAddress, joinAddress string) (connectorMember *ConnectorMember) {
 
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.Link(linkAddress)
 	member.Join(joinAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
