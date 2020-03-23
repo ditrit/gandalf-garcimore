@@ -10,5 +10,4 @@ type Application struct {
 	Aggregator    Aggregator    `gorm:"foreignkey:Name"`
 	Connector     Connector     `gorm:"foreignkey:Name"`
 	ConnectorType ConnectorType `gorm:"foreignkey:Name"`
-	CommandType   CommandType   `gorm:"foreignkey:Name"`
 }

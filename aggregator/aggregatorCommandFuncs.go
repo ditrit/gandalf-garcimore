@@ -13,13 +13,10 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	thisOne := ch.GetBindAddr()
 
 	if dir == "in" {
-		//TODO VERIF TENANT
 		if cmd.GetTenant() == ch.Context["tenant"] {
 			ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
 			if c.GetShosetType() == "cl" {
-				//TODO GET NAME FROM MESSAGE
-				name := "toto"
-				ch.ConnsByName.Get(name).Iterate(
+				ch.ConnsByName.Get(cmd.GetTarget()).Iterate(
 					func(key string, val *net.ShosetConn) {
 						if key != c.GetBindAddr() && key != thisOne {
 							val.SendMessage(cmd)

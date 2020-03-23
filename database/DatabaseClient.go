@@ -32,18 +32,16 @@ func NewDatabaseClient(tenant string) *gorm.DB {
 
 func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
-	databaseClient.AutoMigrate(&models.Aggregator{}, &models.Application{}, &models.Cluster{}, &models.CommandType{},
+	databaseClient.AutoMigrate(&models.Aggregator{}, &models.Application{}, &models.Cluster{},
 		&models.ConnectorType{}, &models.Connector{}, &models.Tenant{})
 
 	databaseClient.Create(&models.Application{Name: "Application1",
 		ConnectorType: models.ConnectorType{Name: "Connector_type1"},
-		CommandType:   models.CommandType{Name: "Command_type1"},
 		Aggregator:    models.Aggregator{Name: "Aggregator1"},
 		Connector:     models.Connector{Name: "Connector1"}})
 
 	databaseClient.Create(&models.Application{Name: "Application2",
 		ConnectorType: models.ConnectorType{Name: "Connector_type2"},
-		CommandType:   models.CommandType{Name: "Command_type2"},
 		Aggregator:    models.Aggregator{Name: "Aggregator2"},
 		Connector:     models.Connector{Name: "Connector2"}})
 
@@ -52,9 +50,6 @@ func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
 	databaseClient.Create(&models.Connector{Name: "Connector1"})
 	databaseClient.Create(&models.Connector{Name: "Connector2"})
-
-	databaseClient.Create(&models.CommandType{Name: "Command_type1"})
-	databaseClient.Create(&models.CommandType{Name: "Command_type1"})
 
 	databaseClient.Create(&models.ConnectorType{Name: "Connector_type1"})
 	databaseClient.Create(&models.ConnectorType{Name: "Connector_type2"})
