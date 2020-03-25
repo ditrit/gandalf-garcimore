@@ -2,6 +2,7 @@ package connector
 
 import (
 	"context"
+	"fmt"
 	pb "garcimore/grpc"
 	"log"
 	"net"
@@ -14,17 +15,19 @@ import (
 )
 
 type ConnectorGrpc struct {
-	GrpcConnection     string
-	ShosetConn         *sn.ShosetConn
-	MapWorkerIterators map[string][]*msg.Iterator
-	CommandChannel     chan msg.Message
-	EventChannel       chan msg.Message
+	GrpcConnection string
+	Shoset         sn.Shoset
+	//MapWorkerIterators map[string][]*msg.Iterator
+	MapIterators   map[string]*msg.Iterator
+	CommandChannel chan msg.Message
+	EventChannel   chan msg.Message
 }
 
-func NewConnectorGrpc(GrpcConnection string, shosetConn *sn.ShosetConn) (connectorGrpc ConnectorGrpc, err error) {
-	connectorGrpc.ShosetConn = shosetConn
+func NewConnectorGrpc(GrpcConnection string, shoset *sn.Shoset) (connectorGrpc ConnectorGrpc, err error) {
+	connectorGrpc.Shoset = *shoset
 	connectorGrpc.GrpcConnection = GrpcConnection
-	connectorGrpc.MapWorkerIterators = make(map[string][]*msg.Iterator)
+	//connectorGrpc.MapWorkerIterators = make(map[string][]*msg.Iterator)
+	connectorGrpc.MapIterators = make(map[string]*msg.Iterator)
 	connectorGrpc.CommandChannel = make(chan msg.Message)
 	connectorGrpc.EventChannel = make(chan msg.Message)
 
@@ -49,12 +52,12 @@ func (r ConnectorGrpc) startGrpcServer() {
 //SendCommandMessage :
 func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
 	cmd := pb.CommandFromGrpc(in)
-	ch := r.ShosetConn.GetCh()
+	ch := r.Shoset
 	thisOne := ch.GetBindAddr()
 
-	r.ShosetConn.GetCh().ConnsByType.Get("a").Iterate(
+	r.Shoset.ConnsByAddr.Iterate(
 		func(key string, val *sn.ShosetConn) {
-			if key != r.ShosetConn.GetBindAddr() && key != thisOne {
+			if key != r.Shoset.GetBindAddr() && key != thisOne {
 				val.SendMessage(cmd)
 			}
 		},
@@ -65,10 +68,10 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 
 //WaitCommandMessage :
 func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMessageWait) (commandMessage *pb.CommandMessage, err error) {
-	ch := r.ShosetConn.GetCh()
-	iterator := msg.NewIterator(ch.Queue["cmd"])
+	iterator := msg.NewIterator(r.Shoset.Queue["cmd"])
 
-	r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
+	//r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
+	r.MapIterators[in.GetIteratorId()] = iterator
 
 	go r.runIterator(in.GetIteratorId(), in.GetValue(), "cmd", iterator, r.CommandChannel)
 	messageChannel := <-r.CommandChannel
@@ -80,33 +83,31 @@ func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMes
 //SendEventMessage :
 func (r ConnectorGrpc) SendEventMessage(ctx context.Context, in *pb.EventMessage) (*pb.Empty, error) {
 	evt := pb.EventFromGrpc(in)
+	evt.Tenant = r.Shoset.Context["tenant"].(string)
 
-	ch := r.ShosetConn.GetCh()
+	ch := r.Shoset
 	thisOne := ch.GetBindAddr()
 
-	r.ShosetConn.GetCh().ConnsByType.Get("a").Iterate(
+	r.Shoset.ConnsByAddr.Iterate(
 		func(key string, val *sn.ShosetConn) {
-			if key != r.ShosetConn.GetBindAddr() && key != thisOne {
+			if key != r.Shoset.GetBindAddr() && key != thisOne && val.ShosetType == "a" {
 				val.SendMessage(evt)
 			}
 		},
 	)
 
 	return &pb.Empty{}, nil
-	/* 	eventMessage := message.EventMessageFromGrpc(in)
-	   	fmt.Println(eventMessage)
-
-	   	go eventMessage.SendMessageWith(r.ConnectorEventSendToAggregator)
-
-	   	return &pb.Empty{}, nil */
 }
 
 //WaitEventMessage :
 func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessageWait) (messageEvent *pb.EventMessage, err error) {
-	ch := r.ShosetConn.GetCh()
-	iterator := msg.NewIterator(ch.Queue["evt"])
+	iterator := msg.NewIterator(r.Shoset.Queue["evt"])
+	fmt.Println("WAIT EVENT")
+	fmt.Println("QUEUEU")
+	fmt.Println(r.Shoset.Queue["cmd"])
 
-	r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
+	//r.MapWorkerIterators[in.GetIteratorId()] = append(r.MapWorkerIterators[in.GetIteratorId()], iterator)
+	r.MapIterators[in.GetIteratorId()] = iterator
 
 	go r.runIterator(in.GetIteratorId(), in.GetEvent(), "evt", iterator, r.EventChannel)
 
@@ -119,10 +120,12 @@ func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessage
 //TODO REFACTORING
 //CreateIteratorCommand :
 func (r ConnectorGrpc) CreateIteratorCommand(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
-	ch := r.ShosetConn.GetCh()
-	iterator := msg.NewIterator(ch.Queue["cmd"])
+	fmt.Println("CREATE ITERATOR CMD")
+	iterator := msg.NewIterator(r.Shoset.Queue["cmd"])
 	index := uuid.New()
-	r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	//r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	r.MapIterators[index.String()] = iterator
+
 	iteratorMessage = &pb.IteratorMessage{Id: index.String()}
 
 	return
@@ -130,17 +133,26 @@ func (r ConnectorGrpc) CreateIteratorCommand(ctx context.Context, in *pb.Empty) 
 
 //CreateIteratorEvent :
 func (r ConnectorGrpc) CreateIteratorEvent(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
-	ch := r.ShosetConn.GetCh()
-	iterator := msg.NewIterator(ch.Queue["evt"])
+	fmt.Println("CREATE ITERATOR EVENT")
+
+	iterator := msg.NewIterator(r.Shoset.Queue["evt"])
 	index := uuid.New()
-	r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	//r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
+	r.MapIterators[index.String()] = iterator
+
 	iteratorMessage = &pb.IteratorMessage{Id: index.String()}
 	return
 }
 
 func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *msg.Iterator, channel chan msg.Message) {
+
+	//fmt.Println("ITERATOR QUEUE")
+	//fmt.Println(iterator)
+	//iterator.PrintQueue()
+
 	notfound := true
 	for notfound {
+		fmt.Println("ITERATOR QUEUE")
 		iterator.PrintQueue()
 		messageIterator := iterator.Get()
 
@@ -167,5 +179,5 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
-	delete(r.MapWorkerIterators, iteratorId)
+	delete(r.MapIterators, iteratorId)
 }

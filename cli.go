@@ -9,6 +9,7 @@ import (
 	"garcimore/cluster"
 	"garcimore/connector"
 	"garcimore/database"
+	"garcimore/test"
 	"os"
 	"shoset/net"
 )
@@ -120,7 +121,7 @@ func main() {
 				command := args[1]
 				switch command {
 				case "init":
-					if len(args) >= 4 {
+					if len(args) >= 6 {
 						done := make(chan bool)
 
 						LogicalName := args[2]
@@ -143,7 +144,7 @@ func main() {
 					}
 					break
 				case "join":
-					if len(args) >= 5 {
+					if len(args) >= 7 {
 						done := make(chan bool)
 
 						LogicalName := args[2]
@@ -176,13 +177,14 @@ func main() {
 				command := args[1]
 				switch command {
 				case "init":
-					if len(args) >= 4 {
+					if len(args) >= 7 {
 						done := make(chan bool)
 
 						LogicalName := args[2]
 						Tenant := args[3]
 						BindAdd := args[4]
-						LinkAdd := args[5]
+						GrpcBindAdd := args[5]
+						LinkAdd := args[6]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
@@ -190,23 +192,25 @@ func main() {
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Grpc Bind Address : " + GrpcBindAdd)
 						fmt.Println("  Link Address : " + LinkAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, LinkAdd)
+						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd)
 
 						<-done
 					}
 					break
 				case "join":
-					if len(args) >= 5 {
+					if len(args) >= 8 {
 						done := make(chan bool)
 
 						LogicalName := args[2]
 						Tenant := args[3]
 						BindAdd := args[4]
-						LinkAdd := args[5]
-						JoinAdd := args[6]
+						GrpcBindAdd := args[5]
+						LinkAdd := args[6]
+						JoinAdd := args[7]
 
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
@@ -214,11 +218,12 @@ func main() {
 						fmt.Println("  Logical Name : " + LogicalName)
 						fmt.Println("  Tenant : " + Tenant)
 						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Grpc Bind Address : " + GrpcBindAdd)
 						fmt.Println("  Link Address : " + LinkAdd)
 						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, LinkAdd, JoinAdd)
+						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, JoinAdd)
 						<-done
 					}
 					break
@@ -246,6 +251,28 @@ func main() {
 				key := args[3]
 				fmt.Println(server)
 				fmt.Println(key)
+			} else {
+				flag.Usage()
+			}
+		case "test":
+			if len(args) >= 1 {
+				command := args[1]
+				switch command {
+				case "send":
+					done := make(chan bool)
+					tutu := test.NewWorkerSend("test", "127.0.0.1:7100")
+					go tutu.Run()
+					<-done
+					break
+				case "receive":
+					done := make(chan bool)
+					tutu := test.NewWorkerReceive("test", "127.0.0.1:7101")
+					go tutu.Run()
+					<-done
+					break
+				default:
+					break
+				}
 			} else {
 				flag.Usage()
 			}

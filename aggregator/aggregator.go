@@ -18,7 +18,7 @@ func NewAggregatorMember(logicalName, tenant string) *AggregatorMember {
 	member.chaussette.Context["tenant"] = tenant
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
-	member.chaussette.Handle["event"] = HandleEvent
+	member.chaussette.Handle["evt"] = HandleEvent
 
 	return member
 }

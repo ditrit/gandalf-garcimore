@@ -4,14 +4,14 @@ type WorkerSend struct {
 	client *ClientGrpcTest
 }
 
-func NewWorkerSend(identity, connection string) {
+func NewWorkerSend(identity, connection string) *WorkerSend {
 	workerSend := new(WorkerSend)
 	workerSend.client = NewClientGrpcTest(identity, connection)
+
+	return workerSend
 }
 
 func (r WorkerSend) Run() {
-	for true {
-		//r.ClientCommand.SendCommand()
-		r.client.SendEvent("test", "0", "test", "test", "test")
-	}
+	//r.ClientCommand.SendCommand()
+	r.client.SendEvent("test", "100000000", "test", "test", "test")
 }

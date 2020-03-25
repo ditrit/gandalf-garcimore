@@ -27,7 +27,7 @@ func NewClusterMember(logicalName string) *ClusterMember {
 
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
-	member.chaussette.Handle["event"] = HandleEvent
+	member.chaussette.Handle["evt"] = HandleEvent
 
 	return member
 }

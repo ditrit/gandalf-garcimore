@@ -2,31 +2,31 @@ package connector
 
 import (
 	"fmt"
-	"shoset/net"
+	sn "shoset/net"
 	"time"
 )
 
 // ConnectorMember :
 type ConnectorMember struct {
-	chaussette    *net.Shoset
+	chaussette    *sn.Shoset
 	connectorGrpc ConnectorGrpc
 }
 
 // NewClusterMember :
 func NewConnectorMember(logicalName, tenant string) *ConnectorMember {
 	member := new(ConnectorMember)
-	member.chaussette = net.NewShoset(logicalName, "c")
+	member.chaussette = sn.NewShoset(logicalName, "c")
 	member.chaussette.Context["tenant"] = tenant
 	member.chaussette.Handle["cfgjoin"] = HandleConfigJoin
 	member.chaussette.Handle["cmd"] = HandleCommand
-	member.chaussette.Handle["event"] = HandleEvent
+	member.chaussette.Handle["evt"] = HandleEvent
 	//member.connectorGrpc = NewConnectorGrpc("", member.chaussette.)
 	return member
 }
 
 // Bind :
 func (m *ConnectorMember) Bind(addr string) error {
-	ipAddr, err := net.GetIP(addr)
+	ipAddr, err := sn.GetIP(addr)
 	if err == nil {
 		err = m.chaussette.Bind(ipAddr)
 	}
@@ -36,28 +36,37 @@ func (m *ConnectorMember) Bind(addr string) error {
 	return err
 }
 
+// Bind :
+func (m *ConnectorMember) GrpcBind(addr string) (err error) {
+	m.connectorGrpc, err = NewConnectorGrpc(addr, m.chaussette)
+	go m.connectorGrpc.startGrpcServer()
+
+	return err
+}
+
 // Join :
-func (m *ConnectorMember) Join(addr string) (*net.ShosetConn, error) {
+func (m *ConnectorMember) Join(addr string) (*sn.ShosetConn, error) {
 	return m.chaussette.Join(addr)
 }
 
 // Link :
-func (m *ConnectorMember) Link(addr string) (*net.ShosetConn, error) {
+func (m *ConnectorMember) Link(addr string) (*sn.ShosetConn, error) {
 	return m.chaussette.Link(addr)
 }
 
 func getBrothers(address string, member *ConnectorMember) []string {
 	bros := []string{address}
 	member.chaussette.ConnsJoin.Iterate(
-		func(key string, val *net.ShosetConn) {
+		func(key string, val *sn.ShosetConn) {
 			bros = append(bros, key)
 		})
 	return bros
 }
 
-func ConnectorMemberInit(logicalName, tenant, bindAddress, linkAddress string) (connectorMember *ConnectorMember) {
+func ConnectorMemberInit(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress string) (connectorMember *ConnectorMember) {
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.GrpcBind(grpcBindAddress)
 	member.Link(linkAddress)
 
 	time.Sleep(time.Second * time.Duration(5))
@@ -66,10 +75,11 @@ func ConnectorMemberInit(logicalName, tenant, bindAddress, linkAddress string) (
 	return member
 }
 
-func ConnectorMemberJoin(logicalName, tenant, bindAddress, linkAddress, joinAddress string) (connectorMember *ConnectorMember) {
+func ConnectorMemberJoin(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress, joinAddress string) (connectorMember *ConnectorMember) {
 
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
+	member.GrpcBind(grpcBindAddress)
 	member.Link(linkAddress)
 	member.Join(joinAddress)
 
