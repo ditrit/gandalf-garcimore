@@ -40,9 +40,18 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 		fmt.Println("Aggregator")
 		fmt.Println(app.Aggregator)
 
-		shosets := utils.GetByTenant(ch.ConnsByName.Get(app.Aggregator), cmd.GetTenant())
+		fmt.Println("NAME")
+		fmt.Println(ch.ConnsByName.Get("agg2"))
+		fmt.Println("NAME2")
+		fmt.Println(ch.ConnsByName.Get(app.Aggregator))
+
+		shosets := utils.GetByType(ch.ConnsByName.Get(app.Aggregator), "a")
+		fmt.Println(shosets)
 		index := getSendIndex(shosets)
+		fmt.Println(index)
+
 		shosets[index].SendMessage(cmd)
+		fmt.Println(shosets[index])
 
 		/*
 			ch.ConnsByName.Get(app.Aggregator).Iterate(

@@ -22,18 +22,26 @@ func GetByType(m *net.MapSafeConn, shosetType string) []*net.ShosetConn {
 	return result
 }
 
-func GetByTenant(m *net.MapSafeConn, tenant string) []*net.ShosetConn {
+/* func GetByTenant(m *net.MapSafeConn, tenant string) []*net.ShosetConn {
 
 	var result []*net.ShosetConn
-	m.Lock()
+	fmt.Println("m.GetM()")
+	fmt.Println(m.GetM())
+	//m.Lock()
 	for _, val := range m.GetM() {
+		fmt.Println("val.GetCh().Context[tenant]")
+		fmt.Println(val.GetCh().Context["tenant"])
+		fmt.Println("tenant")
+		fmt.Println(tenant)
 		if val.GetCh().Context["tenant"] == tenant {
 			result = append(result, val)
 		}
 	}
-	m.Unlock()
+	//m.Unlock()
+	fmt.Println("result")
+	fmt.Println(result)
 	return result
-}
+} */
 
 func CreateValidationEvent(command msg.Command) *msg.Event {
 	var tab = map[string]string{

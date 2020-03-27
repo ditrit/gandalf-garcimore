@@ -114,6 +114,7 @@ func (r ConnectorGrpc) WaitCommandMessage(ctx context.Context, in *pb.CommandMes
 
 	go r.runIterator(in.GetIteratorId(), in.GetValue(), "cmd", iterator, r.CommandChannel)
 	messageChannel := <-r.CommandChannel
+	fmt.Println("TOTOTOTOTOTO")
 	commandMessage = pb.CommandToGrpc(messageChannel.(msg.Command))
 
 	return
@@ -197,9 +198,14 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 
 		if messageIterator != nil {
 			if msgtype == "cmd" {
-				message := (messageIterator.GetMessage()).(msg.Command)
+				fmt.Println("COMMAND")
 
-				if value == message.Command {
+				message := (messageIterator.GetMessage()).(msg.Command)
+				fmt.Println(message)
+				fmt.Println(message.GetCommand())
+				fmt.Println(message.GetUUID())
+				fmt.Println(value)
+				if value == message.GetCommand() {
 					channel <- message
 
 					notfound = false

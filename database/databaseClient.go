@@ -48,7 +48,7 @@ func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 	databaseClient.Create(&models.ConnectorType{Name: "Connector_type2"})
 	databaseClient.Create(&models.ConnectorType{Name: "test"})
 
-	//var application models.Application
+	var application models.Application
 	var Aggregator models.Aggregator
 	var Connector models.Connector
 	var ConnectorType models.ConnectorType
@@ -77,21 +77,21 @@ func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
 	fmt.Println("TOTOTOTOTOTO")
 	databaseClient.Create(&models.Application{Name: "Application3",
-		Aggregator:    "titi",
-		Connector:     "tutu",
+		Aggregator:    "agg2",
+		Connector:     "con2",
 		ConnectorType: "test"})
 
-	/* 	databaseClient.Where("name = ?", "Application3").First(&application)
-	   	fmt.Println("application")
-	   	fmt.Println(application)
-	   	application.Aggregator = "titi"
-	   	application.Connector = "tutu"
-	   	application.ConnectorType = "test"
-	   	databaseClient.Save(&application)
+	databaseClient.Where("name = ?", "Application3").First(&application)
+	fmt.Println("application")
+	fmt.Println(application)
+	application.Aggregator = "agg2"
+	application.Connector = "con2"
+	application.ConnectorType = "test"
+	databaseClient.Save(&application)
 
-	   	databaseClient.Where("name = ?", "Application3").First(&application)
-	   	fmt.Println("application")
-	   	fmt.Println(application) */
+	databaseClient.Where("name = ?", "Application3").First(&application)
+	fmt.Println("application")
+	fmt.Println(application)
 
 	return
 }

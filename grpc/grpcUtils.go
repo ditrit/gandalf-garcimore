@@ -26,8 +26,8 @@ func CommandFromGrpc(commandMessage *CommandMessage) (c msg.Command) {
 	c.Context = make(map[string]interface{})
 	c.Context["ConnectorType"] = commandMessage.GetConnectorType()
 	//c.CommandType = commandMessage.GetCommandType()
-	//c.Command = commandMessage.GetCommand()
-	//c.Payload = commandMessage.GetPayload()
+	c.Command = commandMessage.GetCommand()
+	c.Payload = commandMessage.GetPayload()
 
 	return
 }
