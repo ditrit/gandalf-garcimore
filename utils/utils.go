@@ -1,20 +1,24 @@
 package utils
 
 import (
+	"fmt"
 	"shoset/msg"
 	"shoset/net"
 )
 
 func GetByType(m *net.MapSafeConn, shosetType string) []*net.ShosetConn {
-
+	fmt.Println("GET")
+	fmt.Println(m.GetM())
 	var result []*net.ShosetConn
-	m.Lock()
+	//m.Lock()
 	for _, val := range m.GetM() {
+		fmt.Println("GET BY TYPE")
+		fmt.Println(val)
 		if val.ShosetType == shosetType {
 			result = append(result, val)
 		}
 	}
-	m.Unlock()
+	//m.Unlock()
 	return result
 }
 

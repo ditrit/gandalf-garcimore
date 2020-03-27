@@ -5,7 +5,6 @@ import (
 	"garcimore/utils"
 	"shoset/msg"
 	"shoset/net"
-	"time"
 )
 
 var sendIndex = 0
@@ -29,22 +28,9 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 				if c.GetShosetType() == "c" {
 					fmt.Println("CON 1")
 
-					//SEND VALIDATION
-					c.SendMessage(utils.CreateValidationEvent(cmd))
-
 					shosets := utils.GetByType(ch.ConnsByAddr, "cl")
 					index := getSendIndex(shosets)
-					var send = false
-					for !send {
-						shosets[index].SendMessage(cmd)
-						timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
-						time.Sleep(timeoutSend * time.Millisecond)
-
-						evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
-						if evt != nil {
-							break
-						}
-					}
+					shosets[index].SendMessage(cmd)
 				}
 			}
 		}
@@ -56,30 +42,19 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 				if c.GetShosetType() == "cl" {
 					fmt.Println("CLUSTER1")
 
-					//SEND VALIDATION
 					shosets := utils.GetByType(ch.ConnsByName.Get(cmd.GetTarget()), "c")
 					index := getSendIndex(shosets)
-					var send = false
-					for !send {
-						shosets[index].SendMessage(cmd)
-						timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
-						time.Sleep(timeoutSend * time.Millisecond)
-
-						evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
-						if evt != nil {
-							break
-						}
-					}
-					/*
-						ch.ConnsByName.Get(cmd.GetTarget()).Iterate(
-							func(key string, val *net.ShosetConn) {
-								if key != c.GetBindAddr() && key != thisOne && val.ShosetType == "c" {
-									val.SendMessage(cmd)
-									//WAIT REP
-								}
-							},
-						) */
+					shosets[index].SendMessage(cmd)
 				}
+				/*
+					ch.ConnsByName.Get(cmd.GetTarget()).Iterate(
+						func(key string, val *net.ShosetConn) {
+							if key != c.GetBindAddr() && key != thisOne && val.ShosetType == "c" {
+								val.SendMessage(cmd)
+								//WAIT REP
+							}
+						},
+					) */
 			}
 		}
 	}

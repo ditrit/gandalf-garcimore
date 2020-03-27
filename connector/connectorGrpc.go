@@ -58,18 +58,36 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	cmd.Tenant = r.Shoset.Context["tenant"].(string)
 
 	ch := r.Shoset
+	fmt.Println(r.Shoset.ConnsByAddr)
+	r.Shoset.ConnsByAddr.Iterate(
+		func(key string, val *sn.ShosetConn) {
+			fmt.Println(key)
+			fmt.Println(val)
+		},
+	)
 	//thisOne := ch.GetBindAddr()
-
+	fmt.Println("TOTO")
+	fmt.Println(ch.ConnsByAddr)
 	shosets := utils.GetByType(ch.ConnsByAddr, "a")
+	fmt.Println("shosets")
+	fmt.Println(shosets)
 	index := getSendIndex(shosets)
+	fmt.Println("index")
+	fmt.Println(index)
 	var send = false
 	for !send {
+		fmt.Println("SEND")
+		fmt.Println(shosets[index])
 		shosets[index].SendMessage(cmd)
 		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
 		time.Sleep(timeoutSend * time.Millisecond)
+		fmt.Println("EVT")
 
 		evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
+		fmt.Println(evt)
 		if evt != nil {
+			fmt.Println("break")
+
 			break
 		}
 	}

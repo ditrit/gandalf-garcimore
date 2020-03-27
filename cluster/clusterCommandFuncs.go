@@ -7,7 +7,6 @@ import (
 	"garcimore/utils"
 	"shoset/msg"
 	"shoset/net"
-	"time"
 
 	"github.com/jinzhu/gorm"
 )
@@ -41,22 +40,10 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 		fmt.Println("Aggregator")
 		fmt.Println(app.Aggregator)
 
-		//SEND VALIDATION
-		c.SendMessage(utils.CreateValidationEvent(cmd))
-
-		shosets := utils.GetByTenant(ch.ConnsByName.Get(app.Aggregator), c.GetCh().Context["tenant"].(string))
+		shosets := utils.GetByTenant(ch.ConnsByName.Get(app.Aggregator), cmd.GetTenant())
 		index := getSendIndex(shosets)
-		var send = false
-		for !send {
-			shosets[index].SendMessage(cmd)
-			timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
-			time.Sleep(timeoutSend * time.Millisecond)
+		shosets[index].SendMessage(cmd)
 
-			evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
-			if evt != nil {
-				break
-			}
-		}
 		/*
 			ch.ConnsByName.Get(app.Aggregator).Iterate(
 				func(key string, val *net.ShosetConn) {
