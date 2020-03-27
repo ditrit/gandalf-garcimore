@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"fmt"
 	"shoset/msg"
 	"shoset/net"
 )
@@ -9,18 +10,13 @@ import (
 func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	cmd := message.(msg.Command)
 	ch := c.GetCh()
-	dir := c.GetDir()
-	//thisOne := ch.GetBindAddr()
 
-	//fmt.Printf("%s : event 'join' received from %s\n", thisOne, newMember)
-	if dir == "in" {
-		//QUEUE
-		//TODO REMOTE ADD ??
-		ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
-	}
+	fmt.Println("HANDLE COMMAND")
+	fmt.Println("QUEUEU")
+	fmt.Println(ch.Queue["cmd"])
+	ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
+	fmt.Println("QUEUEU2")
+	fmt.Println(ch.Queue["cmd"])
 
-	/* 	if dir == "out" {
-		//GRPC
-	} */
 	return nil
 }

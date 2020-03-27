@@ -67,6 +67,8 @@ func ClusterMemberInit(logicalName, bindAddress string) (clusterMember *ClusterM
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
 
+	//context db
+
 	return member
 }
 

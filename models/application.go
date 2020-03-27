@@ -6,8 +6,14 @@ import (
 
 type Application struct {
 	gorm.Model
-	Name          string        `form:"name" json:"name" binding:"required" gorm:"type:varchar(255);not null"`
-	Aggregator    Aggregator    `gorm:"foreignkey:Name"`
-	Connector     Connector     `gorm:"foreignkey:Name"`
-	ConnectorType ConnectorType `gorm:"foreignkey:Name"`
+	Name string
+	/* Aggregator      Aggregator
+	AggregatorID    uint
+	Connector       Connector
+	ConnectorID     uint
+	ConnectorType   ConnectorType
+	ConnectorTypeID uint */
+	Aggregator    string
+	Connector     string
+	ConnectorType string
 }

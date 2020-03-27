@@ -37,13 +37,11 @@ func NewClientGrpcTest(identity, clientGrpcTestConnection string) (clientGrpcTes
 }
 
 //SendCommand :
-func (r ClientGrpcTest) SendCommand(contextCommand, timeout, uuid, connectorType, commandType, command, payload string) *pb.CommandMessageUUID {
+func (r ClientGrpcTest) SendCommand(timeout, uuid, connectorType, command, payload string) *pb.CommandMessageUUID {
 	commandMessage := new(pb.CommandMessage)
-	commandMessage.Context = contextCommand
 	commandMessage.Timeout = timeout
 	commandMessage.UUID = uuid
 	commandMessage.ConnectorType = connectorType
-	commandMessage.CommandType = command
 	commandMessage.Command = command
 	commandMessage.Payload = payload
 
@@ -54,10 +52,11 @@ func (r ClientGrpcTest) SendCommand(contextCommand, timeout, uuid, connectorType
 }
 
 //WaitCommand :
-func (r ClientGrpcTest) WaitCommand(command string) msg.Command {
+func (r ClientGrpcTest) WaitCommand(command, id string) msg.Command {
 	commandMessageWait := new(pb.CommandMessageWait)
 	commandMessageWait.WorkerSource = r.Identity
 	commandMessageWait.Value = command
+	commandMessageWait.IteratorId = id
 	commandMessageGrpc, _ := r.ClientCommand.WaitCommandMessage(context.Background(), commandMessageWait)
 	fmt.Println(commandMessageGrpc)
 

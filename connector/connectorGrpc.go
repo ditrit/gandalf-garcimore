@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "garcimore/grpc"
+	"garcimore/utils"
 	"log"
 	"net"
 	"shoset/msg"
@@ -13,6 +14,8 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
+
+var sendIndex = 0
 
 type ConnectorGrpc struct {
 	GrpcConnection string
@@ -52,16 +55,34 @@ func (r ConnectorGrpc) startGrpcServer() {
 //SendCommandMessage :
 func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
 	cmd := pb.CommandFromGrpc(in)
-	ch := r.Shoset
-	thisOne := ch.GetBindAddr()
+	cmd.Tenant = r.Shoset.Context["tenant"].(string)
 
-	r.Shoset.ConnsByAddr.Iterate(
-		func(key string, val *sn.ShosetConn) {
-			if key != r.Shoset.GetBindAddr() && key != thisOne {
-				val.SendMessage(cmd)
-			}
-		},
-	)
+	ch := r.Shoset
+	//thisOne := ch.GetBindAddr()
+
+	shosets := utils.GetByType(ch.ConnsByAddr, "a")
+	index := getSendIndex(shosets)
+	var send = false
+	for !send {
+		shosets[index].SendMessage(cmd)
+		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+		time.Sleep(timeoutSend * time.Millisecond)
+
+		evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
+		if evt != nil {
+			break
+		}
+	}
+
+	/*
+		r.Shoset.ConnsByAddr.Iterate(
+			func(key string, val *sn.ShosetConn) {
+				if key != r.Shoset.GetBindAddr() && key != thisOne && val.ShosetType == "a" {
+					val.SendMessage(cmd)
+					//WAIT REP
+				}
+			},
+		) */
 
 	return &pb.CommandMessageUUID{UUID: cmd.UUID}, nil
 }
@@ -180,4 +201,13 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
 	delete(r.MapIterators, iteratorId)
+}
+
+func getSendIndex(conns []*sn.ShosetConn) int {
+	aux := sendIndex
+	sendIndex++
+	if sendIndex >= len(conns) {
+		sendIndex = 0
+	}
+	return aux
 }

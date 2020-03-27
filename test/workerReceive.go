@@ -14,8 +14,9 @@ func NewWorkerReceive(identity, connection string) *WorkerReceive {
 }
 
 func (r WorkerReceive) Run() {
-	//r.ClientCommand.SendCommand()
-	id := r.client.CreateIteratorEvent()
-	event := r.client.WaitEvent("test", "test", id)
-	fmt.Println(event)
+	id := r.client.CreateIteratorCommand()
+	command := r.client.WaitCommand("test", id)
+	//id := r.client.CreateIteratorEvent()
+	//event := r.client.WaitEvent("test", "test", id)
+	fmt.Println(command)
 }

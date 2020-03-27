@@ -12,6 +12,6 @@ func NewWorkerSend(identity, connection string) *WorkerSend {
 }
 
 func (r WorkerSend) Run() {
-	//r.ClientCommand.SendCommand()
-	r.client.SendEvent("test", "100000000", "test", "test", "test")
+	r.client.SendCommand("100000000", "test", "test", "test", "test")
+	//r.client.SendEvent("test", "100000000", "test", "test", "test")
 }

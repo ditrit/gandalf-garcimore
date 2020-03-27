@@ -23,10 +23,11 @@ func CommandFromGrpc(commandMessage *CommandMessage) (c msg.Command) {
 	minorInt, _ := strconv.ParseInt(commandMessage.GetMinor(), 10, 8)
 	c.Minor = int8(minorInt)
 	c.UUID = commandMessage.GetUUID()
-	//c.ConnectorType = commandMessage.GetConnectorType()
+	c.Context = make(map[string]interface{})
+	c.Context["ConnectorType"] = commandMessage.GetConnectorType()
 	//c.CommandType = commandMessage.GetCommandType()
-	c.Command = commandMessage.GetCommand()
-	c.Payload = commandMessage.GetPayload()
+	//c.Command = commandMessage.GetCommand()
+	//c.Payload = commandMessage.GetPayload()
 
 	return
 }

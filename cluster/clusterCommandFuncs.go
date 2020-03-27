@@ -1,34 +1,83 @@
 package cluster
 
 import (
+	"fmt"
 	"garcimore/database"
 	"garcimore/models"
+	"garcimore/utils"
 	"shoset/msg"
 	"shoset/net"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
+
+var sendIndex = 0
 
 // HandleCommand :
 func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	cmd := message.(msg.Command)
 	ch := c.GetCh()
 	//dir := c.GetDir()
-	thisOne := ch.GetBindAddr()
+	//thisOne := ch.GetBindAddr()
+
+	fmt.Println("HANDLE COMMAND")
+
 	mapDatabaseClient := ch.Context["database"].(map[string]*gorm.DB)
+	/* fmt.Println("MAp")
+	fmt.Println(mapDatabaseClient)
 
-	app := GetApplicationContext(cmd, mapDatabaseClient[cmd.GetTenant()])
-	cmd.Target = app.Connector.Name
+	fmt.Println("MApZ")
+	fmt.Println(GetDatabaseClientByTenant(cmd.GetTenant(), mapDatabaseClient))
+	*/
+	app := GetApplicationContext(cmd, GetDatabaseClientByTenant(cmd.GetTenant(), mapDatabaseClient))
+	fmt.Println("app")
+	fmt.Println(app)
+	if app != (models.Application{}) {
+		fmt.Println("CONNECTOR")
+		fmt.Println(app.Connector)
+		cmd.Target = app.Connector
 
-	ch.ConnsByName.Get(app.Aggregator.Name).Iterate(
-		func(key string, val *net.ShosetConn) {
-			if key != c.GetBindAddr() && key != thisOne && c.GetCh().Context["tenant"] == val.GetCh().Context["tenant"] {
-				val.SendMessage(cmd)
+		fmt.Println("Aggregator")
+		fmt.Println(app.Aggregator)
+
+		//SEND VALIDATION
+		c.SendMessage(utils.CreateValidationEvent(cmd))
+
+		shosets := utils.GetByTenant(ch.ConnsByName.Get(app.Aggregator), c.GetCh().Context["tenant"].(string))
+		index := getSendIndex(shosets)
+		var send = false
+		for !send {
+			shosets[index].SendMessage(cmd)
+			timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+			time.Sleep(timeoutSend * time.Millisecond)
+
+			evt := ch.Queue["evt"].GetByUUID(cmd.GetUUID())
+			if evt != nil {
+				break
 			}
-		},
-	)
+		}
+		/*
+			ch.ConnsByName.Get(app.Aggregator).Iterate(
+				func(key string, val *net.ShosetConn) {
+					if key != c.GetBindAddr() && key != thisOne && c.GetCh().Context["tenant"] == val.GetCh().Context["tenant"] {
+						val.SendMessage(cmd)
+						//WAIT REP
+					}
+				},
+			) */
+	}
 
 	return nil
+}
+
+func getSendIndex(conns []*net.ShosetConn) int {
+	aux := sendIndex
+	sendIndex++
+	if sendIndex >= len(conns) {
+		sendIndex = 0
+	}
+	return aux
 }
 
 // GetDatabaseClientByTenant
@@ -41,7 +90,14 @@ func GetDatabaseClientByTenant(tenant string, mapDatabaseClient map[string]*gorm
 
 // GetDatabaseClientByTenant
 func GetApplicationContext(cmd msg.Command, client *gorm.DB) (applicationContext models.Application) {
-	client.Where("tenant = ? AND connectorType = ?", cmd.Tenant, cmd.GetContext()["ConnectorType"]).First(&applicationContext)
+	fmt.Println("TYPE")
+	fmt.Println(cmd.GetContext()["ConnectorType"].(string))
+	var connectortype models.ConnectorType
+	//client.Where("name = ?", cmd.GetContext()["ConnectorType"].(string)).First(&connectortype)
+	fmt.Println("connectortype")
+	fmt.Println(connectortype)
+	//client.Model(&connectortype).Related(&applicationContext)
+	client.Where("connector_type = ?", cmd.GetContext()["ConnectorType"].(string)).First(&applicationContext)
 
 	return
 }
