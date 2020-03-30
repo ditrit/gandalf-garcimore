@@ -9,7 +9,7 @@ import (
 // HandleEvent :
 func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 	evt := message.(msg.Event)
-	ch := *c.GetCh()
+	ch := c.GetCh()
 	//dir := c.GetDir()
 	//thisOne := ch.GetBindAddr()
 	fmt.Println("HANDLE EVENT")

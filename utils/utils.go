@@ -43,12 +43,15 @@ func GetByType(m *net.MapSafeConn, shosetType string) []*net.ShosetConn {
 	return result
 } */
 
-func CreateValidationEvent(command msg.Command) *msg.Event {
+func CreateValidationEvent(command msg.Command, tenant string) (evt *msg.Event) {
 	var tab = map[string]string{
 		"topic":          "validation",
 		"event":          "validation",
 		"payload":        "",
 		"referencesUUID": command.GetUUID()}
 
-	return msg.NewEvent(tab)
+	evt = msg.NewEvent(tab)
+	evt.Tenant = tenant
+	evt.Timeout = 100000
+	return
 }

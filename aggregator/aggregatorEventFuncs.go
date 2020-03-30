@@ -29,7 +29,7 @@ func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 				ch.ConnsByAddr.Iterate(
 					func(key string, val *net.ShosetConn) {
 
-						if key != c.GetBindAddr() && key != thisOne /* && val.ShosetType == "cl" */ {
+						if key != c.GetBindAddr() && key != thisOne && val.ShosetType == "cl" {
 							val.SendMessage(evt)
 							// fmt.Printf("%s : send event new 'member' %s to %s\n", thisOne, newMember, key)
 						}
