@@ -34,7 +34,6 @@ func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 	databaseClient.Create(&models.ConnectorType{Name: "Connector_type2"})
 	databaseClient.Create(&models.ConnectorType{Name: "test"})
 
-	var application models.Application
 	var Aggregator models.Aggregator
 	var Connector models.Connector
 	var ConnectorType models.ConnectorType

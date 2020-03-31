@@ -1,5 +1,7 @@
 package test
 
+import "fmt"
+
 type WorkerSend struct {
 	client *ClientGrpcTest
 }
@@ -12,6 +14,19 @@ func NewWorkerSend(identity, connection string) *WorkerSend {
 }
 
 func (r WorkerSend) Run() {
-	r.client.SendCommand("100000000", "test", "test", "test", "test")
+	commandUUID := r.client.SendCommand("100000000", "test", "test", "test")
+	if commandUUID != nil {
+		id := r.client.CreateIteratorEvent()
+		for {
+			event := r.client.WaitTopic(commandUUID.GetUUID(), id)
+			fmt.Println(event)
+
+			if event.GetPayload() == "SUCCES" || event.GetPayload() == "FAIL" {
+				fmt.Println(event.GetPayload())
+				break
+			}
+		}
+	}
+
 	//r.client.SendEvent("test", "10000", "test", "test", "test")
 }

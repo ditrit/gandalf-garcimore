@@ -62,9 +62,10 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	shosets := utils.GetByType(r.Shoset.ConnsByAddr, "a")
 	iteratorMessage, _ := r.CreateIteratorEvent(ctx, new(pb.Empty))
 	iterator := r.MapIterators[iteratorMessage.GetId()]
-	go r.runIteratorValidation(iteratorMessage.GetId(), cmd.GetUUID(), iterator, r.ValidationChannel)
+	go r.runIterator(iteratorMessage.GetId(), cmd.GetUUID(), "validation", iterator, r.ValidationChannel)
 
-	for {
+	notSend := true
+	for notSend {
 		index := getSendIndex(shosets)
 		shosets[index].SendMessage(cmd)
 		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
@@ -72,12 +73,14 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 		messageChannel := <-r.ValidationChannel
 		if messageChannel != nil {
 			fmt.Println("break")
-
+			notSend = false
 			break
 		}
 		time.Sleep(timeoutSend)
 	}
-
+	if notSend {
+		return nil, nil
+	}
 	return &pb.CommandMessageUUID{UUID: cmd.UUID}, nil
 }
 
@@ -116,6 +119,19 @@ func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessage
 	iterator := r.MapIterators[in.GetIteratorId()]
 
 	go r.runIterator(in.GetIteratorId(), in.GetEvent(), "evt", iterator, r.EventChannel)
+
+	messageChannel := <-r.EventChannel
+	messageEvent = pb.EventToGrpc(messageChannel.(msg.Event))
+
+	return
+}
+
+//WaitEventMessage :
+func (r ConnectorGrpc) WaitTopicMessage(ctx context.Context, in *pb.TopicMessageWait) (messageEvent *pb.EventMessage, err error) {
+
+	iterator := r.MapIterators[in.GetIteratorId()]
+
+	go r.runIterator(in.GetIteratorId(), in.GetTopic(), "topic", iterator, r.EventChannel)
 
 	messageChannel := <-r.EventChannel
 	messageEvent = pb.EventToGrpc(messageChannel.(msg.Event))
@@ -172,14 +188,30 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 
 					break
 				}
+			} else if msgtype == "topic" {
+				message := (messageIterator.GetMessage()).(msg.Event)
+
+				if value == message.Topic {
+					channel <- message
+
+					break
+				}
+			} else if msgtype == "validation" {
+				message := (messageIterator.GetMessage()).(msg.Event)
+
+				if value == message.ReferencesUUID {
+					fmt.Println("return gi")
+					channel <- message
+					break
+				}
 			}
 		}
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
-	delete(r.MapIterators, iteratorId)
+	//delete(r.MapIterators, iteratorId)
 }
 
-func (r ConnectorGrpc) runIteratorValidation(iteratorId, value string, iterator *msg.Iterator, channel chan msg.Message) {
+/* func (r ConnectorGrpc) runIteratorValidation(iteratorId, value string, iterator *msg.Iterator, channel chan msg.Message) {
 
 	for {
 		fmt.Println("ITERATOR QUEUE")
@@ -199,7 +231,7 @@ func (r ConnectorGrpc) runIteratorValidation(iteratorId, value string, iterator 
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
 	delete(r.MapIterators, iteratorId)
-}
+} */
 
 func getSendIndex(conns []*sn.ShosetConn) int {
 	aux := sendIndex

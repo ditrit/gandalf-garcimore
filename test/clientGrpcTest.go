@@ -7,6 +7,7 @@ import (
 	"shoset/msg"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 )
 
@@ -37,10 +38,10 @@ func NewClientGrpcTest(identity, clientGrpcTestConnection string) (clientGrpcTes
 }
 
 //SendCommand :
-func (r ClientGrpcTest) SendCommand(timeout, uuid, connectorType, command, payload string) *pb.CommandMessageUUID {
+func (r ClientGrpcTest) SendCommand(timeout, connectorType, command, payload string) *pb.CommandMessageUUID {
 	commandMessage := new(pb.CommandMessage)
 	commandMessage.Timeout = timeout
-	commandMessage.UUID = uuid
+	commandMessage.UUID = uuid.New().String()
 	commandMessage.ConnectorType = connectorType
 	commandMessage.Command = command
 	commandMessage.Payload = payload
@@ -82,11 +83,11 @@ func (r ClientGrpcTest) CreateIteratorCommand() string {
 }
 
 //SendEvent :
-func (r ClientGrpcTest) SendEvent(topic, timeout, uuid, event, payload string) *pb.Empty {
+func (r ClientGrpcTest) SendEvent(topic, timeout, event, payload string) *pb.Empty {
 	eventMessage := new(pb.EventMessage)
 	eventMessage.Topic = topic
 	eventMessage.Timeout = timeout
-	eventMessage.UUID = uuid
+	eventMessage.UUID = uuid.New().String()
 	eventMessage.Event = event
 	eventMessage.Payload = payload
 	empty, _ := r.ClientEvent.SendEventMessage(context.Background(), eventMessage)
@@ -116,6 +117,21 @@ func (r ClientGrpcTest) WaitEvent(event, topic, id string) (eventMessage msg.Eve
 	eventMessageWait.Event = event
 	eventMessageWait.IteratorId = id
 	eventMessageGrpc, _ := r.ClientEvent.WaitEventMessage(context.Background(), eventMessageWait)
+
+	for eventMessageGrpc == nil {
+		time.Sleep(time.Duration(1) * time.Millisecond)
+	}
+
+	return pb.EventFromGrpc(eventMessageGrpc)
+}
+
+//WaitEvent :
+func (r ClientGrpcTest) WaitTopic(topic, id string) (eventMessage msg.Event) {
+	topicMessageWait := new(pb.TopicMessageWait)
+	topicMessageWait.WorkerSource = r.Identity
+	topicMessageWait.Topic = topic
+	topicMessageWait.IteratorId = id
+	eventMessageGrpc, _ := r.ClientEvent.WaitTopicMessage(context.Background(), topicMessageWait)
 
 	for eventMessageGrpc == nil {
 		time.Sleep(time.Duration(1) * time.Millisecond)
