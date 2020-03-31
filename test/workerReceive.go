@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -21,9 +22,8 @@ func (r WorkerReceive) Run() {
 	command := r.client.WaitCommand("test", id)
 	//id := r.client.CreateIteratorEvent()
 	//event := r.client.WaitEvent("test", "test", id)
-	//SLEEP
 	for i := 1; i < 5; i++ {
-		r.client.SendEvent(command.GetUUID(), "10000", string(i*20), "test")
+		r.client.SendEvent(command.GetUUID(), "10000", strconv.Itoa(i*20), "test")
 		time.Sleep(time.Duration(10) * time.Millisecond)
 
 	}

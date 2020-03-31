@@ -12,6 +12,7 @@ import (
 	"garcimore/test"
 	"os"
 	"shoset/net"
+	"strconv"
 )
 
 func main() {
@@ -173,6 +174,8 @@ func main() {
 			}
 			break
 		case "connector":
+			TimeoutMax := int64(1000)
+
 			if len(args) >= 2 {
 				command := args[1]
 				switch command {
@@ -186,6 +189,10 @@ func main() {
 						GrpcBindAdd := args[5]
 						LinkAdd := args[6]
 
+						if len(args) >= 8 {
+							TimeoutMax, _ = strconv.ParseInt(args[8], 10, 64)
+						}
+
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
@@ -196,7 +203,7 @@ func main() {
 						fmt.Println("  Link Address : " + LinkAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd)
+						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, TimeoutMax)
 
 						<-done
 					}
@@ -212,6 +219,10 @@ func main() {
 						LinkAdd := args[6]
 						JoinAdd := args[7]
 
+						if len(args) >= 9 {
+							TimeoutMax, _ = strconv.ParseInt(args[8], 10, 64)
+						}
+
 						//CREATE CONNECTOR
 						fmt.Println("Running Gandalf with:")
 						fmt.Println("  Mode : " + mode)
@@ -223,7 +234,7 @@ func main() {
 						fmt.Println("  Join Address : " + JoinAdd)
 						fmt.Println("  Config : " + config)
 
-						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, JoinAdd)
+						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, JoinAdd, TimeoutMax)
 						<-done
 					}
 					break

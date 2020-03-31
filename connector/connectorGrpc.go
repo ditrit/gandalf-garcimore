@@ -25,11 +25,13 @@ type ConnectorGrpc struct {
 	CommandChannel    chan msg.Message
 	EventChannel      chan msg.Message
 	ValidationChannel chan msg.Message
+	timeoutMax        int64
 }
 
-func NewConnectorGrpc(GrpcConnection string, shoset *sn.Shoset) (connectorGrpc ConnectorGrpc, err error) {
+func NewConnectorGrpc(GrpcConnection string, timeoutMax int64, shoset *sn.Shoset) (connectorGrpc ConnectorGrpc, err error) {
 	connectorGrpc.Shoset = *shoset
 	connectorGrpc.GrpcConnection = GrpcConnection
+	connectorGrpc.timeoutMax = timeoutMax
 	//connectorGrpc.MapWorkerIterators = make(map[string][]*msg.Iterator)
 	connectorGrpc.MapIterators = make(map[string]*msg.Iterator)
 	connectorGrpc.CommandChannel = make(chan msg.Message)
@@ -58,8 +60,16 @@ func (r ConnectorGrpc) startGrpcServer() {
 func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMessage) (*pb.CommandMessageUUID, error) {
 	cmd := pb.CommandFromGrpc(in)
 	cmd.Tenant = r.Shoset.Context["tenant"].(string)
-
 	shosets := utils.GetByType(r.Shoset.ConnsByAddr, "a")
+
+	var timeoutSend time.Duration
+	if cmd.GetTimeout() > r.timeoutMax {
+		timeoutSend = time.Duration(int(r.timeoutMax) / len(shosets))
+
+	} else {
+		timeoutSend = time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+	}
+
 	iteratorMessage, _ := r.CreateIteratorEvent(ctx, new(pb.Empty))
 	iterator := r.MapIterators[iteratorMessage.GetId()]
 	go r.runIterator(iteratorMessage.GetId(), cmd.GetUUID(), "validation", iterator, r.ValidationChannel)
@@ -68,7 +78,8 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	for notSend {
 		index := getSendIndex(shosets)
 		shosets[index].SendMessage(cmd)
-		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+
+		//timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
 
 		messageChannel := <-r.ValidationChannel
 		if messageChannel != nil {

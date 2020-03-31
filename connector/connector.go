@@ -10,6 +10,7 @@ import (
 type ConnectorMember struct {
 	chaussette    *sn.Shoset
 	connectorGrpc ConnectorGrpc
+	timeoutMax    int64
 }
 
 // NewClusterMember :
@@ -38,7 +39,7 @@ func (m *ConnectorMember) Bind(addr string) error {
 
 // Bind :
 func (m *ConnectorMember) GrpcBind(addr string) (err error) {
-	m.connectorGrpc, err = NewConnectorGrpc(addr, m.chaussette)
+	m.connectorGrpc, err = NewConnectorGrpc(addr, m.timeoutMax, m.chaussette)
 	go m.connectorGrpc.startGrpcServer()
 
 	return err
@@ -63,11 +64,12 @@ func getBrothers(address string, member *ConnectorMember) []string {
 	return bros
 }
 
-func ConnectorMemberInit(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress string) (connectorMember *ConnectorMember) {
+func ConnectorMemberInit(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress string, timeoutMax int64) (connectorMember *ConnectorMember) {
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 	member.GrpcBind(grpcBindAddress)
 	member.Link(linkAddress)
+	member.timeoutMax = timeoutMax
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Init(%#v)\n", bindAddress, getBrothers(bindAddress, member))
@@ -75,13 +77,14 @@ func ConnectorMemberInit(logicalName, tenant, bindAddress, grpcBindAddress, link
 	return member
 }
 
-func ConnectorMemberJoin(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress, joinAddress string) (connectorMember *ConnectorMember) {
+func ConnectorMemberJoin(logicalName, tenant, bindAddress, grpcBindAddress, linkAddress, joinAddress string, timeoutMax int64) (connectorMember *ConnectorMember) {
 
 	member := NewConnectorMember(logicalName, tenant)
 	member.Bind(bindAddress)
 	member.GrpcBind(grpcBindAddress)
 	member.Link(linkAddress)
 	member.Join(joinAddress)
+	member.timeoutMax = timeoutMax
 
 	time.Sleep(time.Second * time.Duration(5))
 	fmt.Printf("%s.JoinBrothers Join(%#v)\n", bindAddress, getBrothers(bindAddress, member))
