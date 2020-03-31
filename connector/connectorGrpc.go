@@ -60,45 +60,16 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	cmd.Tenant = r.Shoset.Context["tenant"].(string)
 
 	shosets := utils.GetByType(r.Shoset.ConnsByAddr, "a")
-	fmt.Println("shosets")
-	fmt.Println(shosets)
-
-	fmt.Println("r.MapIterators")
-	fmt.Println(r.MapIterators)
 	iteratorMessage, _ := r.CreateIteratorEvent(ctx, new(pb.Empty))
-	fmt.Println("r.MapIterators2")
-	fmt.Println(r.MapIterators)
-	fmt.Println("ITE ID")
-	fmt.Println(r.MapIterators)
 	iterator := r.MapIterators[iteratorMessage.GetId()]
-	fmt.Println(iterator)
 	go r.runIteratorValidation(iteratorMessage.GetId(), cmd.GetUUID(), iterator, r.ValidationChannel)
 
-	/* 	index := getSendIndex(shosets)
-	   	fmt.Println("index")
-	   	fmt.Println(index)
-	   	fmt.Println("SEND")
-	   	fmt.Println(shosets[index])
-	   	shosets[index].SendMessage(cmd) */
-
-	//messageChannel := <-r.ValidationChannel
-	//fmt.Println(messageChannel)
 	for {
 		index := getSendIndex(shosets)
-		fmt.Println("index")
-		fmt.Println(index)
-		fmt.Println("SEND")
-		fmt.Println(shosets[index])
 		shosets[index].SendMessage(cmd)
-		fmt.Println("SENNDDD TOTOTOTOTO")
 		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
 
-		fmt.Println(timeoutSend)
-		fmt.Println("EVT")
-
 		messageChannel := <-r.ValidationChannel
-		fmt.Println("BOOOPPPP")
-		fmt.Println(messageChannel)
 		if messageChannel != nil {
 			fmt.Println("break")
 
@@ -106,17 +77,6 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 		}
 		time.Sleep(timeoutSend)
 	}
-	fmt.Println("SORTIE")
-
-	/*
-		r.Shoset.ConnsByAddr.Iterate(
-			func(key string, val *sn.ShosetConn) {
-				if key != r.Shoset.GetBindAddr() && key != thisOne && val.ShosetType == "a" {
-					val.SendMessage(cmd)
-					//WAIT REP
-				}
-			},
-		) */
 
 	return &pb.CommandMessageUUID{UUID: cmd.UUID}, nil
 }
@@ -166,7 +126,6 @@ func (r ConnectorGrpc) WaitEventMessage(ctx context.Context, in *pb.EventMessage
 //TODO REFACTORING
 //CreateIteratorCommand :
 func (r ConnectorGrpc) CreateIteratorCommand(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
-	fmt.Println("CREATE ITERATOR CMD")
 	iterator := msg.NewIterator(r.Shoset.Queue["cmd"])
 	index := uuid.New()
 	//r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
@@ -179,7 +138,6 @@ func (r ConnectorGrpc) CreateIteratorCommand(ctx context.Context, in *pb.Empty) 
 
 //CreateIteratorEvent :
 func (r ConnectorGrpc) CreateIteratorEvent(ctx context.Context, in *pb.Empty) (iteratorMessage *pb.IteratorMessage, err error) {
-	fmt.Println("CREATE ITERATOR EVENT")
 	iterator := msg.NewIterator(r.Shoset.Queue["evt"])
 	index := uuid.New()
 	//r.MapWorkerIterators[index.String()] = append(r.MapWorkerIterators[index.String()], iterator)
@@ -198,13 +156,9 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 
 		if messageIterator != nil {
 			if msgtype == "cmd" {
-				fmt.Println("COMMAND")
 
 				message := (messageIterator.GetMessage()).(msg.Command)
-				fmt.Println(message)
-				fmt.Println(message.GetCommand())
-				fmt.Println(message.GetUUID())
-				fmt.Println(value)
+
 				if value == message.GetCommand() {
 					channel <- message
 
@@ -219,9 +173,7 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 					break
 				}
 			}
-
 		}
-
 		time.Sleep(time.Duration(2000) * time.Millisecond)
 	}
 	delete(r.MapIterators, iteratorId)
@@ -235,12 +187,8 @@ func (r ConnectorGrpc) runIteratorValidation(iteratorId, value string, iterator 
 		messageIterator := iterator.Get()
 
 		if messageIterator != nil {
-			fmt.Println(messageIterator)
 			message := (messageIterator.GetMessage()).(msg.Event)
-			fmt.Println(message)
-			fmt.Println("tutu")
-			fmt.Println(value)
-			fmt.Println(message.ReferencesUUID)
+
 			if value == message.ReferencesUUID {
 				fmt.Println("return gi")
 				channel <- message

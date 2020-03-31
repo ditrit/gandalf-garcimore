@@ -1,14 +1,11 @@
 package database
 
 import (
-	"fmt"
 	"garcimore/models"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
-
-//var databaseClient *gorm.DB
 
 func NewDatabaseClient(tenant string) *gorm.DB {
 	databaseClient, err := gorm.Open("sqlite3", tenant+".db")
@@ -19,17 +16,6 @@ func NewDatabaseClient(tenant string) *gorm.DB {
 
 	return databaseClient
 }
-
-/* func GetDatabaseClient *gorm.DB {
-	var err error
-	if databaseClient == nil {
-		databaseClient, err = gorm.Open("sqlite3", "context.db")
-		if err != nil {
-			panic("failed to connect database")
-		}
-	}
-	return databaseClient
-} */
 
 func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
@@ -75,23 +61,10 @@ func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 	databaseClient.Where("name = ?", "tutu").First(&Connector)
 	databaseClient.Where("name = ?", "test").First(&ConnectorType)
 
-	fmt.Println("TOTOTOTOTOTO")
 	databaseClient.Create(&models.Application{Name: "Application3",
 		Aggregator:    "agg2",
 		Connector:     "con2",
 		ConnectorType: "test"})
-
-	databaseClient.Where("name = ?", "Application3").First(&application)
-	fmt.Println("application")
-	fmt.Println(application)
-	application.Aggregator = "agg2"
-	application.Connector = "con2"
-	application.ConnectorType = "test"
-	databaseClient.Save(&application)
-
-	databaseClient.Where("name = ?", "Application3").First(&application)
-	fmt.Println("application")
-	fmt.Println(application)
 
 	return
 }

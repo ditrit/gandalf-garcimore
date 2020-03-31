@@ -11,13 +11,12 @@ func HandleEvent(c *net.ShosetConn, message msg.Message) error {
 	evt := message.(msg.Event)
 	ch := c.GetCh()
 	thisOne := ch.GetBindAddr()
+
 	fmt.Println("HANDLE EVENT")
-	dir := c.GetDir()
-	fmt.Println(dir)
+	fmt.Println(evt)
 
 	ok := ch.Queue["evt"].Push(evt, c.ShosetType, c.GetBindAddr())
-	fmt.Println("ok")
-	fmt.Println(ok)
+
 	if ok {
 		ch.ConnsByAddr.Iterate(
 			func(key string, val *net.ShosetConn) {
