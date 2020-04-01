@@ -270,16 +270,38 @@ func main() {
 				command := args[1]
 				switch command {
 				case "send":
-					done := make(chan bool)
-					tutu := test.NewWorkerSend("test", "127.0.0.1:7100")
-					go tutu.Run()
-					<-done
+					if len(args) >= 5 {
+						messageType := args[2]
+						value := args[3]
+						payload := args[4]
+						var topic = ""
+
+						if len(args) >= 6 {
+							topic = args[5]
+						}
+
+						done := make(chan bool)
+						tutu := test.NewWorkerCliSend("test", "127.0.0.1:7100", messageType, value, payload, topic)
+						go tutu.Run()
+						<-done
+					}
+
 					break
 				case "receive":
-					done := make(chan bool)
-					tutu := test.NewWorkerReceive("test", "127.0.0.1:7101")
-					go tutu.Run()
-					<-done
+					if len(args) >= 4 {
+						messageType := args[2]
+						value := args[3]
+						var topic = ""
+
+						if len(args) >= 5 {
+							topic = args[4]
+						}
+
+						done := make(chan bool)
+						tutu := test.NewWorkerCliReceive("test", "127.0.0.1:7101", messageType, value, topic)
+						go tutu.Run()
+						<-done
+					}
 					break
 				default:
 					break

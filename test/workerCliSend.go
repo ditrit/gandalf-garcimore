@@ -10,7 +10,7 @@ type WorkerCliSend struct {
 	payload     string
 }
 
-func NewWorkerCliSend(identity, connection, messageType, value, topic, payload string) *WorkerCliSend {
+func NewWorkerCliSend(identity, connection, messageType, value, payload, topic string) *WorkerCliSend {
 	workerCliSend := new(WorkerCliSend)
 	workerCliSend.messageType = messageType
 	workerCliSend.value = value
