@@ -62,12 +62,8 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 	cmd.Tenant = r.Shoset.Context["tenant"].(string)
 	shosets := utils.GetByType(r.Shoset.ConnsByAddr, "a")
 
-	var timeoutSend time.Duration
 	if cmd.GetTimeout() > r.timeoutMax {
-		timeoutSend = time.Duration(int(r.timeoutMax) / len(shosets))
-
-	} else {
-		timeoutSend = time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+		cmd.Timeout = r.timeoutMax
 	}
 
 	iteratorMessage, _ := r.CreateIteratorEvent(ctx, new(pb.Empty))
@@ -76,10 +72,11 @@ func (r ConnectorGrpc) SendCommandMessage(ctx context.Context, in *pb.CommandMes
 
 	notSend := true
 	for notSend {
+
 		index := getSendIndex(shosets)
 		shosets[index].SendMessage(cmd)
 
-		//timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
+		timeoutSend := time.Duration((int(cmd.GetTimeout()) / len(shosets)))
 
 		messageChannel := <-r.ValidationChannel
 		if messageChannel != nil {
@@ -210,7 +207,7 @@ func (r ConnectorGrpc) runIterator(iteratorId, value, msgtype string, iterator *
 			} else if msgtype == "validation" {
 				message := (messageIterator.GetMessage()).(msg.Event)
 
-				if value == message.ReferencesUUID {
+				if value == message.ReferencesUUID && message.Event == "TAKEN" {
 					fmt.Println("return gi")
 					channel <- message
 					break

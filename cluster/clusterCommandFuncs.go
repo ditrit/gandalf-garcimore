@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"fmt"
-	"garcimore/database"
 	"garcimore/models"
 	"garcimore/utils"
 	"shoset/msg"
@@ -20,16 +19,23 @@ func HandleCommand(c *net.ShosetConn, message msg.Message) error {
 	fmt.Println("HANDLE COMMAND")
 	fmt.Println(cmd)
 
-	mapDatabaseClient := ch.Context["database"].(map[string]*gorm.DB)
+	ok := ch.Queue["cmd"].Push(cmd, c.ShosetType, c.GetBindAddr())
+	if ok {
 
-	app := GetApplicationContext(cmd, GetDatabaseClientByTenant(cmd.GetTenant(), mapDatabaseClient))
+		mapDatabaseClient := ch.Context["database"].(map[string]*gorm.DB)
+		databaseClient := GetDatabaseClientByTenant(cmd.GetTenant(), mapDatabaseClient)
 
-	if app != (models.Application{}) {
+		CaptureMessage(message, "cmd", databaseClient)
 
-		cmd.Target = app.Connector
-		shosets := utils.GetByType(ch.ConnsByName.Get(app.Aggregator), "a")
-		index := getSendIndex(shosets)
-		shosets[index].SendMessage(cmd)
+		app := GetApplicationContext(cmd, databaseClient)
+
+		if app != (models.Application{}) {
+
+			cmd.Target = app.Connector
+			shosets := utils.GetByType(ch.ConnsByName.Get(app.Aggregator), "a")
+			index := getSendIndex(shosets)
+			shosets[index].SendMessage(cmd)
+		}
 	}
 
 	return nil
@@ -42,20 +48,4 @@ func getSendIndex(conns []*net.ShosetConn) int {
 		sendIndex = 0
 	}
 	return aux
-}
-
-// GetDatabaseClientByTenant
-func GetDatabaseClientByTenant(tenant string, mapDatabaseClient map[string]*gorm.DB) *gorm.DB {
-	if _, ok := mapDatabaseClient[tenant]; !ok {
-		mapDatabaseClient[tenant] = database.NewDatabaseClient(tenant)
-	}
-	return mapDatabaseClient[tenant]
-}
-
-// GetDatabaseClientByTenant
-func GetApplicationContext(cmd msg.Command, client *gorm.DB) (applicationContext models.Application) {
-
-	client.Where("connector_type = ?", cmd.GetContext()["ConnectorType"].(string)).First(&applicationContext)
-
-	return
 }

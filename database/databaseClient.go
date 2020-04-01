@@ -20,7 +20,7 @@ func NewDatabaseClient(tenant string) *gorm.DB {
 func InitTenantDatabase(databaseClient *gorm.DB) (err error) {
 
 	databaseClient.AutoMigrate(&models.Aggregator{}, &models.Application{},
-		&models.ConnectorType{}, &models.Connector{})
+		&models.ConnectorType{}, &models.Connector{}, &models.Event{}, &models.Command{})
 
 	databaseClient.Create(&models.Aggregator{Name: "Aggregator1"})
 	databaseClient.Create(&models.Aggregator{Name: "Aggregator2"})

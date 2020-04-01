@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"shoset/msg"
 	"shoset/net"
 )
 
@@ -42,16 +41,3 @@ func GetByType(m *net.MapSafeConn, shosetType string) []*net.ShosetConn {
 	fmt.Println(result)
 	return result
 } */
-
-func CreateValidationEvent(command msg.Command, tenant string) (evt *msg.Event) {
-	var tab = map[string]string{
-		"topic":          "validation",
-		"event":          "validation",
-		"payload":        "",
-		"referencesUUID": command.GetUUID()}
-
-	evt = msg.NewEvent(tab)
-	evt.Tenant = tenant
-	evt.Timeout = 100000
-	return
-}

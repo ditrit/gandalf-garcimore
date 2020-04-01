@@ -174,7 +174,7 @@ func main() {
 			}
 			break
 		case "connector":
-			TimeoutMax := int64(1000)
+			TimeoutMax := int64(100000)
 
 			if len(args) >= 2 {
 				command := args[1]
@@ -190,7 +190,7 @@ func main() {
 						LinkAdd := args[6]
 
 						if len(args) >= 8 {
-							TimeoutMax, _ = strconv.ParseInt(args[8], 10, 64)
+							TimeoutMax, _ = strconv.ParseInt(args[7], 10, 64)
 						}
 
 						//CREATE CONNECTOR

@@ -21,7 +21,7 @@ func (r WorkerSend) Run() {
 			event := r.client.WaitTopic(commandUUID.GetUUID(), id)
 			fmt.Println(event)
 
-			if event.GetPayload() == "SUCCES" || event.GetPayload() == "FAIL" {
+			if event.GetEvent() == "SUCCES" || event.GetEvent() == "FAIL" {
 				fmt.Println(event.GetPayload())
 				break
 			}
