@@ -1,6 +1,6 @@
-go build -tags libsqlite3
+//BUILD
+go build -tags libsqlite3 <br />
 <br />
-
 //CLUSTER <br />
 ./garcimore cluster init cluster 127.0.0.1:9000 <br />
 ./garcimore cluster join cluster 127.0.0.1:9001 127.0.0.1:9000 <br />
