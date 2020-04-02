@@ -281,7 +281,7 @@ func main() {
 						}
 
 						done := make(chan bool)
-						tutu := test.NewWorkerCliSend("test", "127.0.0.1:7010", messageType, value, payload, topic)
+						tutu := test.NewWorkerCliSend("test", messageType, value, payload, topic, []string{"127.0.0.1:7010", "127.0.0.1:7011"})
 						go tutu.Run()
 						<-done
 					}
@@ -298,7 +298,7 @@ func main() {
 						}
 
 						done := make(chan bool)
-						tutu := test.NewWorkerCliReceive("test", "127.0.0.1:7110", messageType, value, topic)
+						tutu := test.NewWorkerCliReceive("test", messageType, value, topic, []string{"127.0.0.1:7110", "127.0.0.1:7111"})
 						go tutu.Run()
 						<-done
 					}
