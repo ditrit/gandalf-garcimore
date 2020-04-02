@@ -1,4 +1,4 @@
-//BUILD
+//BUILD <br />
 go build -tags libsqlite3 <br />
 <br />
 //CLUSTER <br />
