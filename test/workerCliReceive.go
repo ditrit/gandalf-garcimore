@@ -38,7 +38,7 @@ func (r WorkerCliReceive) Run() {
 		//event := r.client.WaitEvent("test", "test", id)
 		for i := 1; i <= 10; i++ {
 			client.SendEvent(command.GetUUID(), "10000", strconv.Itoa(i*10), "test")
-			time.Sleep(time.Duration(1000) * time.Millisecond)
+			time.Sleep(time.Duration(500) * time.Millisecond)
 
 		}
 		client.SendEvent(command.GetUUID(), "10000", "SUCCES", "test")
