@@ -29,6 +29,7 @@ func NewWorkerCliReceive(identity, messageType, value, topic string, connections
 func (r WorkerCliReceive) Run() {
 	if r.messageType == "cmd" {
 		id := r.client.CreateIteratorCommand()
+		fmt.Println(id)
 		command := r.client.WaitCommand(r.value, id)
 		fmt.Println(command)
 		//id := r.client.CreateIteratorEvent()

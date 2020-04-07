@@ -106,26 +106,55 @@ func main() {
 			}
 		case "aggregator":
 			if len(args) >= 2 {
-				if len(args) >= 6 {
-					done := make(chan bool)
+				command := args[1]
 
-					LogicalName := args[2]
-					Tenant := args[3]
-					BindAdd := args[4]
-					LinkAdd := args[5]
+				switch command {
+				case "init":
+					if len(args) >= 6 {
+						done := make(chan bool)
 
-					//CREATE AGGREGATOR
-					fmt.Println("Running Gandalf with:")
-					fmt.Println("  Logical Name : " + LogicalName)
-					fmt.Println("  Tenant : " + Tenant)
-					fmt.Println("  Bind Address : " + BindAdd)
-					fmt.Println("  Link Address : " + LinkAdd)
-					fmt.Println("  Config : " + config)
+						LogicalName := args[2]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
 
-					aggregator.AggregatorMemberInit(LogicalName, Tenant, BindAdd, LinkAdd)
+						//CREATE AGGREGATOR
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Logical Name : " + LogicalName)
+						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Config : " + config)
 
-					<-done
+						aggregator.AggregatorMemberInit(LogicalName, Tenant, BindAdd, LinkAdd)
 
+						<-done
+					}
+					break
+				case "join":
+					if len(args) >= 7 {
+						done := make(chan bool)
+
+						LogicalName := args[2]
+						Tenant := args[3]
+						BindAdd := args[4]
+						LinkAdd := args[5]
+						JoinAdd := args[6]
+
+						//CREATE AGGREGATOR
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Logical Name : " + LogicalName)
+						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Join Address : " + JoinAdd)
+						fmt.Println("  Config : " + config)
+
+						aggregator.AggregatorMemberJoin(LogicalName, Tenant, BindAdd, LinkAdd, JoinAdd)
+
+						<-done
+					}
+					break
 				}
 			}
 			break
@@ -133,32 +162,69 @@ func main() {
 			TimeoutMax := int64(100000)
 
 			if len(args) >= 2 {
-				if len(args) >= 7 {
-					done := make(chan bool)
+				command := args[1]
 
-					LogicalName := args[2]
-					Tenant := args[3]
-					BindAdd := args[4]
-					GrpcBindAdd := args[5]
-					LinkAdd := args[6]
+				switch command {
+				case "init":
+					if len(args) >= 7 {
+						done := make(chan bool)
 
-					if len(args) >= 8 {
-						TimeoutMax, _ = strconv.ParseInt(args[7], 10, 64)
+						LogicalName := args[2]
+						Tenant := args[3]
+						BindAdd := args[4]
+						GrpcBindAdd := args[5]
+						LinkAdd := args[6]
+
+						if len(args) >= 8 {
+							TimeoutMax, _ = strconv.ParseInt(args[7], 10, 64)
+						}
+
+						//CREATE CONNECTOR
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Logical Name : " + LogicalName)
+						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Grpc Bind Address : " + GrpcBindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Config : " + config)
+
+						connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, TimeoutMax)
+
+						<-done
+
 					}
+					break
+				case "join":
+					if len(args) >= 8 {
+						done := make(chan bool)
 
-					//CREATE CONNECTOR
-					fmt.Println("Running Gandalf with:")
-					fmt.Println("  Logical Name : " + LogicalName)
-					fmt.Println("  Tenant : " + Tenant)
-					fmt.Println("  Bind Address : " + BindAdd)
-					fmt.Println("  Grpc Bind Address : " + GrpcBindAdd)
-					fmt.Println("  Link Address : " + LinkAdd)
-					fmt.Println("  Config : " + config)
+						LogicalName := args[2]
+						Tenant := args[3]
+						BindAdd := args[4]
+						GrpcBindAdd := args[5]
+						LinkAdd := args[6]
+						JoinAdd := args[7]
 
-					connector.ConnectorMemberInit(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, TimeoutMax)
+						if len(args) >= 8 {
+							TimeoutMax, _ = strconv.ParseInt(args[7], 10, 64)
+						}
 
-					<-done
+						//CREATE CONNECTOR
+						fmt.Println("Running Gandalf with:")
+						fmt.Println("  Logical Name : " + LogicalName)
+						fmt.Println("  Tenant : " + Tenant)
+						fmt.Println("  Bind Address : " + BindAdd)
+						fmt.Println("  Grpc Bind Address : " + GrpcBindAdd)
+						fmt.Println("  Link Address : " + LinkAdd)
+						fmt.Println("  Join Address : " + JoinAdd)
+						fmt.Println("  Config : " + config)
 
+						connector.ConnectorMemberJoin(LogicalName, Tenant, BindAdd, GrpcBindAdd, LinkAdd, JoinAdd, TimeoutMax)
+
+						<-done
+
+					}
+					break
 				}
 			}
 			break

@@ -29,9 +29,14 @@ func NewWorkerCliSend(identity, messageType, value, payload, topic string, conne
 func (r WorkerCliSend) Run() {
 	if r.messageType == "cmd" {
 		commandUUID := r.client.SendCommand("100000", "test", r.value, r.payload)
+		fmt.Println("commandUUID")
+		fmt.Println(commandUUID)
+		fmt.Println("commandUUID")
 		if commandUUID != nil {
 			id := r.client.CreateIteratorEvent()
+			fmt.Println(id)
 			for {
+
 				event := r.client.WaitTopic(commandUUID.GetUUID(), id)
 				fmt.Println(event)
 
