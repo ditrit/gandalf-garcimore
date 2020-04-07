@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/rand"
-	b64 "encoding/base64"
 	"flag"
 	"fmt"
 	"garcimore/aggregator"
@@ -44,9 +42,6 @@ func main() {
 				command := args[1]
 
 				switch command {
-				case "list":
-					database.List(database.DefaultCluster)
-					break
 				case "init":
 					if len(args) >= 4 {
 						done := make(chan bool)
@@ -103,14 +98,6 @@ func main() {
 						flag.Usage()
 					}
 					break
-				case "genkey":
-					key := make([]byte, 32)
-					_, err := rand.Read(key)
-					if err != nil {
-						fmt.Println("ERROR")
-					}
-					fmt.Println("Key : " + string(b64.URLEncoding.EncodeToString(key)))
-					break
 				default:
 					break
 				}
@@ -129,7 +116,6 @@ func main() {
 
 					//CREATE AGGREGATOR
 					fmt.Println("Running Gandalf with:")
-					fmt.Println("  Mode : " + mode)
 					fmt.Println("  Logical Name : " + LogicalName)
 					fmt.Println("  Tenant : " + Tenant)
 					fmt.Println("  Bind Address : " + BindAdd)
@@ -162,7 +148,6 @@ func main() {
 
 					//CREATE CONNECTOR
 					fmt.Println("Running Gandalf with:")
-					fmt.Println("  Mode : " + mode)
 					fmt.Println("  Logical Name : " + LogicalName)
 					fmt.Println("  Tenant : " + Tenant)
 					fmt.Println("  Bind Address : " + BindAdd)
@@ -177,28 +162,6 @@ func main() {
 				}
 			}
 			break
-		case "agent":
-			if len(args) >= 1 {
-				command := args[1] //CREATE TENANT //CREATE USER //LIST USER //LIST TENANT
-				switch command {
-				case "CREATE_TENANT":
-					if len(args) >= 2 {
-						tenant := args[2] //TENANT
-						secret := args[3] //SECRET
-						fmt.Println(tenant)
-						fmt.Println(secret)
-					}
-					break
-				default:
-					break
-				}
-				server := args[2]
-				key := args[3]
-				fmt.Println(server)
-				fmt.Println(key)
-			} else {
-				flag.Usage()
-			}
 		case "test":
 			if len(args) >= 1 {
 				command := args[1]
